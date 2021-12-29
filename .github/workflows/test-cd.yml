@@ -7,6 +7,10 @@ on:
         required: false
         default: 'dev'
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   call-cd:
     uses: TrafficDriven/ml-deployer/.github/workflows/cd.yml@v0.0.20
