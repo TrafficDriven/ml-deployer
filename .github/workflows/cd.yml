@@ -140,6 +140,8 @@ jobs:
   
       - name: 'Set up gCloud SDK'
         uses: 'google-github-actions/setup-gcloud@v0.3.0'
+        with:
+          project_id: ${{ inputs.repository_project_id }}
 
       - name: Configure docker
         run: |

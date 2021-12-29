@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	fmt.Printf("%s", "v0.0.1-dev")
+	fmt.Printf("%s", "0.0.1-dev")
 }

@@ -32,4 +32,4 @@ version1:
 
 docker-image:
 	$(eval VERSION=$(shell go run tools/version/main.go))
-	docker build . -t us-central1-docker.pkg.dev/tdt-platform/mintlist/ml-deployer:$(VERSION)
+	docker build . -t us-central1-docker.pkg.dev/tdt-platform/mintlist/ml-deployer:v$(VERSION)
