@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   call-cd:
-    uses: TrafficDriven/ml-deployer/.github/workflows/cd.yml@v0.0.20
+    uses: TrafficDriven/ml-deployer/.github/workflows/cd.yml@v0.0.21
     with:
       go_version: v1.17
       repository_project_id: tdt-platform
