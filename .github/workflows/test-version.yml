@@ -1,0 +1,10 @@
+name: Test VERSION
+on: [push]
+
+jobs:
+  call-version:
+    uses: TrafficDriven/ml-deployer/.github/workflows/version.yml@v0.0.20
+    with:
+      go_version: v1.17
+    secrets:
+      token: ${{ secrets.PUSH_TOKEN }}

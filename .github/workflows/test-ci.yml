@@ -1,0 +1,14 @@
+name: Test CI
+on: [pull_request]
+
+jobs:
+  call-ci:
+    uses: TrafficDriven/ml-deployer/.github/workflows/ci.yml@v0.0.20
+    with:
+      go_version: v1.17
+
+  call-ci-with-setup:
+    uses: TrafficDriven/ml-deployer/.github/workflows/ci.yml@v0.0.20
+    with:
+      go_version: v1.17
+      setup: true
