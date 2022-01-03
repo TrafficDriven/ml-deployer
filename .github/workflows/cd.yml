@@ -33,10 +33,6 @@ on:
         required: false
         default: v1.16
         type: string
-      slack_channel_id:
-        description: 'Slack Channel ID.'
-        required: false
-        type: string
       environment:
         description: 'Environment'
         required: false
@@ -78,6 +74,9 @@ on:
         default: "-"
         type: string
     secrets:
+      slack_channel_id:
+        description: 'Slack Channel ID.'
+        required: false
       slack_bot_token:
         description: 'Slack Token'
         required: true
@@ -142,18 +141,10 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.workload_identity_provider }}
           service_account: ${{ secrets.service_account }}
- 
+
       - name: Configure docker
         run: |
           gcloud auth configure-docker us-central1-docker.pkg.dev -q
-
-      - name: Get the GKE credentials so we can deploy to the cluster
-        if: inputs.deploy == true
-        uses: google-github-actions/get-gke-credentials@v0.5.0
-        with:
-          cluster_name: ${{ inputs.gke_cluster }}
-          location: ${{ inputs.location }}
-          project_id: ${{ inputs.gke_project_id }}
   
       - name: Run Docker Build
         shell: bash
@@ -166,6 +157,14 @@ jobs:
           docker tag ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
           docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
           docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }}
+
+      - name: Get the GKE credentials so we can deploy to the cluster
+        if: inputs.deploy == true
+        uses: google-github-actions/get-gke-credentials@v0.5.0
+        with:
+          cluster_name: ${{ inputs.gke_cluster }}
+          location: ${{ inputs.location }}
+          project_id: ${{ inputs.gke_project_id }}
  
       - name: Deploy to Kubernetes Cluster
         if: inputs.deploy == true
@@ -176,7 +175,7 @@ jobs:
       - name: Post Slack Notification
         uses: slackapi/slack-github-action@v1.15.0
         with:
-          channel-id: ${{ inputs.slack_channel_id }}
+          channel-id: ${{ secrets.slack_channel_id }}
           slack-message: '*${{ github.actor }}* is shipping *${{ inputs.application_name }}* from *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{ env.ENV }}* environment :tada:'
         env:
           SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}

@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   call-cd:
-    uses: TrafficDriven/ml-deployer/.github/workflows/cd.yml@v0.0.21
+    uses: TrafficDriven/ml-deployer/.github/workflows/cd.yml@dev
     with:
       go_version: v1.17
       repository_project_id: tdt-platform
@@ -22,8 +22,8 @@ jobs:
       image: ml-deployer
       environment: ${{ github.event.inputs.environment }}
       gke_cluster: tdt-ml-${{ github.event.inputs.environment }}
-      slack_channel_id: "C02J5PUMLS1"
     secrets:
       slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
-      workload_identity_provider: ${{ secrets.GHA_WORKLOAD_IDENTITY_PROVIDER }}
-      service_account: ${{ secrets.GHA_GOOGLE_SERVICE_ACCOUNT }}
+      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+      service_account: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
+      slack_channel_id: ${{ secrets.TEST_SLACK_CHANNEL }}
