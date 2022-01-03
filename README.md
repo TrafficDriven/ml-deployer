@@ -16,7 +16,8 @@ The CD reusable workflow requires that the calling workflow sets the permissions
 
 ```
 permissions:
-   id-token: write
+  id-token: write
+  contents: read
 ```
 
 ## Testing
