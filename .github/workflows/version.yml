@@ -49,13 +49,13 @@ jobs:
           git pull origin ${{ env.BRANCH }}
 
       # Setting Version Bump level to Patch by default
-      - if: startswith(github.event.head_commit.message, 'bugfix')
+      - if: contains(github.event.head_commit.message, '[bugfix]')
         run: |
           echo "BUMP=patch" >> $GITHUB_ENV
           echo "PUSH=1" >> $GITHUB_ENV
 
       # Setting Version Bump level to Minor
-      - if: startswith(github.event.head_commit.message, 'feature')
+      - if: contains(github.event.head_commit.message, '[feature]')
         run: |
           echo "BUMP=minor" >> $GITHUB_ENV
           echo "PUSH=1" >> $GITHUB_ENV
