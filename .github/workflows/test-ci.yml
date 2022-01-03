@@ -1,14 +1,16 @@
 name: Test CI
-on: [pull_request]
+on: 
+  pull_request:
+    branches: [ main ]
 
 jobs:
   call-ci:
-    uses: TrafficDriven/ml-deployer/.github/workflows/ci.yml@v0.0.20
+    uses: TrafficDriven/ml-deployer/.github/workflows/ci.yml@dev
     with:
       go_version: v1.17
 
   call-ci-with-setup:
-    uses: TrafficDriven/ml-deployer/.github/workflows/ci.yml@v0.0.20
+    uses: TrafficDriven/ml-deployer/.github/workflows/ci.yml@dev
     with:
       go_version: v1.17
       setup: true

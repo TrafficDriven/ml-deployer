@@ -22,9 +22,10 @@ permissions:
 ## Testing
 
 * Create a dev branch off the main branch.
-* Create a testing branch off the dev branch.
-* Push to the testing branch will trigger the version.yml workflow.
-* Pull Request on the dev branch will trigger the ci.yml workflow.
+* Create a pull request to merge the dev branch to main.
+* Update the workflow with your code changes.
+* Push to the dev branch will trigger the ci.yml workflow and the version.yml workflow.
+* Test the version.yml workflow fully by using a commit containing [bugfix] or [feature].
 * The cd.yml workflow can be tested manually by deploying the testing branch to dev.
-
-Note to update the tags as you make changes. This is not done automatically.
+* Merge the dev branch into the main branch.
+* Create a new tag for the new commit into the main branch.
