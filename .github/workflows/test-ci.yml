@@ -1,5 +1,7 @@
 name: Test CI
-on: [pull_request]
+on: 
+  pull_request:
+    branches: [ main ]
 
 jobs:
   call-ci:
