@@ -34,58 +34,58 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+    - name: Checkout Code
+      uses: actions/checkout@v2
 
-      - name: Presetup environment
-        if: inputs.setup == true
-        shell: bash
-        run: |-
-          make setup
+    - name: Presetup environment
+      if: inputs.setup == true
+      shell: bash
+      run: |-
+        make setup
 
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ inputs.go_version }}
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ inputs.go_version }}
 
-      - name: Setup golangci-lint
-        uses: golangci/golangci-lint-action@v2
-        with:
-          version: ${{ inputs.go_lint_version }}
+    - name: Setup golangci-lint
+      uses: golangci/golangci-lint-action@v2
+      with:
+        version: ${{ inputs.go_lint_version }}
 
-      - name: Setup Node
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ inputs.node_version }}
+    - name: Setup Node
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ inputs.node_version }}
 
-      - name: Go Format
-        run: |
-          go fmt ./...
+    - name: Go Format
+      run: |
+        go fmt ./...
 
-      - name: Go Test
-        run: |
-          go test -v ./...
+    - name: Go Test
+      run: |
+        go test -v ./...
 
-      - name: Other Tests
-        run: |
-          make ci
+    - name: Other Tests
+      run: |
+        make ci
 
-      - if: inputs.gosec == true
-        name: Gosec Security Scanner
-        run: |
-          export PATH=$PATH:$(go env GOPATH)/bin
-          go install github.com/securego/gosec/v2/cmd/gosec@v2.9.5
-          gosec './...'
+    - if: inputs.gosec == true
+      name: Gosec Security Scanner
+      run: |
+        export PATH=$PATH:$(go env GOPATH)/bin
+        go install github.com/securego/gosec/v2/cmd/gosec@v2.9.5
+        gosec './...'
 
-      - name: Set up Helm
-        uses: azure/setup-helm@v1
-        with:
-          version: v3.6.3
+    - name: Set up Helm
+      uses: azure/setup-helm@v1
+      with:
+        version: v3.6.3
 
-      - name: Run Lint
-        run: |
-          make lint
+    - name: Run Lint
+      run: |
+        make lint
 
-      - name: Run helm lint
-        run: |
-          make helm_lint
+    - name: Run helm lint
+      run: |
+        make helm_lint

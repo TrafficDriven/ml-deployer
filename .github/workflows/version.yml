@@ -23,57 +23,57 @@ jobs:
     if: "!contains(github.event.head_commit.author.name, 'github-actions[bot]')"
     runs-on: ubuntu-latest
     steps:
-      # Checkout Code
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.token }}
+    - name: Checkout Code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.token }}
 
-      # Setup Go
-      - uses: actions/setup-go@v2
-        with:
-          go-version: ${{ inputs.go_version }}
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ inputs.go_version }}
 
-      # Install Go Dependencies
-      - run: go version
+    - name: Install Go Dependencies
+      run: go version
 
-      # Setting branch name
-      - run: |-
-          echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+    - name: Setting branch name
+      run: |-
+        echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
 
-      # Sync changes again
-      - run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git config pull.rebase false
-          git pull origin ${{ env.BRANCH }}
+    - name: Sync changes again
+      run: |
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git config pull.rebase false
+        git pull origin ${{ env.BRANCH }}
 
-      # Setting Version Bump level to Patch by default
-      - if: contains(github.event.head_commit.message, '[bugfix]')
-        run: |
-          echo "BUMP=patch" >> $GITHUB_ENV
-          echo "PUSH=1" >> $GITHUB_ENV
+    - name: Setting Version Bump level to Patch by default
+      if: contains(github.event.head_commit.message, '[bugfix]')
+      run: |
+        echo "BUMP=patch" >> $GITHUB_ENV
+        echo "PUSH=1" >> $GITHUB_ENV
 
-      # Setting Version Bump level to Minor
-      - if: contains(github.event.head_commit.message, '[feature]')
-        run: |
-          echo "BUMP=minor" >> $GITHUB_ENV
-          echo "PUSH=1" >> $GITHUB_ENV
+    - name: Setting Version Bump level to Minor
+      if: contains(github.event.head_commit.message, '[feature]')
+      run: |
+        echo "BUMP=minor" >> $GITHUB_ENV
+        echo "PUSH=1" >> $GITHUB_ENV
 
-      # Bump Version
-      - if: env.PUSH == 1
-        id: bump_version
-        run: |
-          echo "::set-output name=version::$(make ${{ inputs.bump_target }})"
+    - name: Bump Version
+      if: env.PUSH == 1
+      id: bump_version
+      run: |
+        echo "::set-output name=version::$(make ${{ inputs.bump_target }})"
 
-      # Commit files
-      - if: env.PUSH == 1
-        run: |
-          git diff-index --quiet HEAD || git commit -m "Bump version to ${{ steps.bump_version.outputs.version }} [skip ci]" -a
+    - name: Commit files
+      if: env.PUSH == 1
+      run: |
+        git diff-index --quiet HEAD || git commit -m "Bump version to ${{ steps.bump_version.outputs.version }} [skip ci]" -a
 
-      # Push changes
-      - if: env.PUSH == 1
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          github_token: ${{ secrets.token }}
-          branch: ${{ env.BRANCH }}
+    - name: Push changes
+      if: env.PUSH == 1
+      uses: ad-m/github-push-action@v0.6.0
+      with:
+        github_token: ${{ secrets.token }}
+        branch: ${{ env.BRANCH }}

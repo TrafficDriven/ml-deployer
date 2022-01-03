@@ -92,90 +92,90 @@ jobs:
   release-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
+    - name: Checkout Code
+      uses: actions/checkout@v2
 
-      - name: GHA Environment setup
-        if: inputs.setup == true
-        shell: bash
-        run: |-
-          make setup
+    - name: GHA Environment setup
+      if: inputs.setup == true
+      shell: bash
+      run: |-
+        make setup
 
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: ${{ inputs.go_version }}
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ inputs.go_version }}
 
-      - name: Install Go Dependencies
-        shell: bash
-        run: |-
-          go version
+    - name: Install Go Dependencies
+      shell: bash
+      run: |-
+        go version
 
-      - name: Echo Input Information
-        shell: bash
-        run: |-
-          echo "You are deploying from the ${GITHUB_REF##*/} branch to the ${{ inputs.environment }} environment" 
-      
-      - name: Setting branch name
-        shell: bash
-        run: |-
-          echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
-          echo "ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
-          echo "NODE_ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
-          echo "PROJECT_NAME=$(echo ${{ inputs.image }})" >> $GITHUB_ENV
+    - name: Echo Input Information
+      shell: bash
+      run: |-
+        echo "You are deploying from the ${GITHUB_REF##*/} branch to the ${{ inputs.environment }} environment" 
+    
+    - name: Setting branch name
+      shell: bash
+      run: |-
+        echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+        echo "ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
+        echo "NODE_ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
+        echo "PROJECT_NAME=$(echo ${{ inputs.image }})" >> $GITHUB_ENV
 
-      - name: Setting Env With Version
-        id: get_version_name
-        shell: bash
-        run: |-
-          echo "VERSION=v$(make ${{ inputs.version_target }}).$(echo ${GITHUB_SHA::7})"  >> $GITHUB_ENV
-          echo "RAW_VERSION=v$(make ${{ inputs.version_target }})"  >> $GITHUB_ENV
-      
-      - name: Set up gCloud SDK
-        uses: 'google-github-actions/setup-gcloud@v0.3.0'
-        with:
-          project_id: ${{ inputs.repository_project_id }}
+    - name: Setting Env With Version
+      id: get_version_name
+      shell: bash
+      run: |-
+        echo "VERSION=v$(make ${{ inputs.version_target }}).$(echo ${GITHUB_SHA::7})"  >> $GITHUB_ENV
+        echo "RAW_VERSION=v$(make ${{ inputs.version_target }})"  >> $GITHUB_ENV
+    
+    - name: Set up gCloud SDK
+      uses: 'google-github-actions/setup-gcloud@v0.3.0'
+      with:
+        project_id: ${{ inputs.repository_project_id }}
 
-      - name: Authenticate to Google Cloud
-        uses: 'google-github-actions/auth@v0.4.4'
-        with:
-          workload_identity_provider: ${{ secrets.workload_identity_provider }}
-          service_account: ${{ secrets.service_account }}
+    - name: Authenticate to Google Cloud
+      uses: 'google-github-actions/auth@v0.4.4'
+      with:
+        workload_identity_provider: ${{ secrets.workload_identity_provider }}
+        service_account: ${{ secrets.service_account }}
 
-      - name: Configure docker
-        run: |
-          gcloud auth configure-docker us-central1-docker.pkg.dev -q
-  
-      - name: Run Docker Build
-        shell: bash
-        run: |-
-          make ${{ inputs.docker_target }}
+    - name: Configure docker
+      run: |
+        gcloud auth configure-docker us-central1-docker.pkg.dev -q
 
-      - name: Publish the Docker image to Google Container Registry
-        shell: bash
-        run: |-
-          docker tag ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
-          docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
-          docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }}
+    - name: Run Docker Build
+      shell: bash
+      run: |-
+        make ${{ inputs.docker_target }}
 
-      - name: Get the GKE credentials so we can deploy to the cluster
-        if: inputs.deploy == true
-        uses: google-github-actions/get-gke-credentials@v0.5.0
-        with:
-          cluster_name: ${{ inputs.gke_cluster }}
-          location: ${{ inputs.location }}
-          project_id: ${{ inputs.gke_project_id }}
- 
-      - name: Deploy to Kubernetes Cluster
-        if: inputs.deploy == true
-        shell: bash
-        run: |-
-          helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.VERSION }} --set app.version=${{ env.VERSION }} | kubectl apply -f -
+    - name: Publish the Docker image to Google Container Registry
+      shell: bash
+      run: |-
+        docker tag ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
+        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
+        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }}
 
-      - name: Post Slack Notification
-        uses: slackapi/slack-github-action@v1.15.0
-        with:
-          channel-id: ${{ secrets.slack_channel_id }}
-          slack-message: '*${{ github.actor }}* is shipping *${{ inputs.application_name }}* from *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{ env.ENV }}* environment :tada:'
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}
+    - name: Get the GKE credentials so we can deploy to the cluster
+      if: inputs.deploy == true
+      uses: google-github-actions/get-gke-credentials@v0.5.0
+      with:
+        cluster_name: ${{ inputs.gke_cluster }}
+        location: ${{ inputs.location }}
+        project_id: ${{ inputs.gke_project_id }}
+
+    - name: Deploy to Kubernetes Cluster
+      if: inputs.deploy == true
+      shell: bash
+      run: |-
+        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.VERSION }} --set app.version=${{ env.VERSION }} | kubectl apply -f -
+
+    - name: Post Slack Notification
+      uses: slackapi/slack-github-action@v1.15.0
+      with:
+        channel-id: ${{ secrets.slack_channel_id }}
+        slack-message: '*${{ github.actor }}* is shipping *${{ inputs.application_name }}* from *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{ env.ENV }}* environment :tada:'
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}
