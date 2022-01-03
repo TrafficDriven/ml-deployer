@@ -22,6 +22,7 @@ jobs:
       image: ml-deployer
       environment: ${{ github.event.inputs.environment }}
       gke_cluster: tdt-ml-${{ github.event.inputs.environment }}
+      deploy: true
     secrets:
       slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
