@@ -30,7 +30,7 @@ on:
         type: boolean
 
 jobs:
-  # Runs continous integration test
+  # Runs continuous integration test
   test:
     runs-on: ubuntu-latest
     steps:
