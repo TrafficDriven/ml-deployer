@@ -9,12 +9,12 @@ permissions:
 
 jobs:
   call-version:
-    uses: TrafficDriven/ml-deployer/.github/workflows/version.yml@dev
+    uses: TrafficDriven/ml-deployer/.github/workflows/version.yml@main
     secrets:
       token: ${{ secrets.PUSH_TOKEN }}
 
   call-cr:
-    uses: TrafficDriven/ml-deployer/.github/workflows/cd.yml@dev
+    uses: TrafficDriven/ml-deployer/.github/workflows/cd.yml@main
     with:
       repository_project_id: tdt-platform
       repository: mintlist
