@@ -1,11 +1,7 @@
 name: Test CR
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to deploy'
-        required: false
-        default: 'dev'
+  push:
+    branches: [ main ]
 
 permissions:
   id-token: write
