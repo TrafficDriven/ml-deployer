@@ -28,4 +28,6 @@ permissions:
 * Push to the dev branch will trigger the ci.yml workflow and the version.yml workflow.
 * Test the version.yml workflow fully by using a commit containing [bugfix] or [feature].
 * The cd.yml workflow can be tested manually by deploying the testing branch to dev.
+* The release (deployment on merge to main) process can be tested by merging to main with [bugfix] or [feature]. 
+* Note to add the #none or #minor on merging to main to determine how the reusable workflow tag should be bumped.
 * Merge the dev branch into the main branch.
