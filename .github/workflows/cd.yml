@@ -92,7 +92,13 @@ jobs:
   release-deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Code
+
+    - if: inputs.deploy == true
+      name: Checkout Deploy Code
+      uses: actions/checkout@v2
+  
+    - if: inputs.deploy == false
+      name: Checkout Code
       uses: actions/checkout@v2
       with:
         ref: 'main'
