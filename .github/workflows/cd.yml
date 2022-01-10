@@ -94,6 +94,9 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+    - run: git checkout HEAD^
 
     - name: GHA Environment setup
       if: inputs.setup == true
