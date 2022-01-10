@@ -12,13 +12,14 @@ The VERSION reusable workflow requires that the calling repository contains a ma
 * bump (or the name specified in the bump_target input): Runs the version bump
 
 ## CD workflow
-The CD reusable workflow requires that the calling workflow sets the permissions setting with a defined id-token value.
+The CD reusable workflow requires that the calling workflow sets the permissions setting with a defined id-token and contents value below:
 
 ```
 permissions:
   id-token: write
   contents: read
 ```
+When the CD workflow is used with deploy set to false, it sets the ref for the checkout action: https://github.com/actions/checkout to the main branch by default. This default can be overidden by setting the branch input.
 
 ## Testing
 

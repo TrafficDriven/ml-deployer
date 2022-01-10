@@ -48,6 +48,11 @@ on:
         required: false
         default: false
         type: boolean
+      branch:
+        description: 'The branch to checkout if deploy is set to false (the default)'
+        required: false
+        default: main
+        type: string
       notification:
         description: 'Send slack notification'
         required: false
@@ -101,7 +106,7 @@ jobs:
       name: Checkout Code
       uses: actions/checkout@v2
       with:
-        ref: 'main'
+        ref: inputs.branch
 
     - name: GHA Environment setup
       if: inputs.setup == true
