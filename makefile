@@ -15,15 +15,6 @@ bump:
 bump1:
 	@CONFIG_FILE=config1.yml go run tools/bump/main.go
 
-bump2:
-	@CONFIG_FILE=config2.yml go run tools/bump/main.go
-
-bump3:
-	@CONFIG_FILE=config3.yml go run tools/bump/main.go
-
-bump4:
-	@CONFIG_FILE=config4.yml go run tools/bump/main.go
-
 version:
 	@go run tools/version/main.go
 
