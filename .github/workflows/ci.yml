@@ -6,7 +6,7 @@ on:
       go_version:
         description: 'Go version'
         required: false
-        default: v1.16
+        default: v1.17
         type: string
       node_version:
         description: 'Node version'
