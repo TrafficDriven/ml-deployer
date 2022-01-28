@@ -69,6 +69,8 @@ jobs:
     - name: Commit files
       if: env.PUSH == 1
       run: |
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
         git diff-index --quiet HEAD || git commit -m "Bump version to ${{ steps.bump_version.outputs.version }} [skip ci]" -a
 
     - name: Push changes
@@ -79,7 +81,6 @@ jobs:
         max_attempts: 5
         command: git push
         on_retry_command: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+
           git config pull.rebase false
           git pull origin ${{ env.BRANCH }}
