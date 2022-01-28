@@ -23,6 +23,7 @@ When the CD workflow is used with deploy set to false, it sets the ref for the c
 
 ## Testing
 
+* Delete any existing dev branch.
 * Create a dev branch off the main branch.
 * Create a pull request to merge the dev branch to main.
 * Update the workflow with your code changes.
