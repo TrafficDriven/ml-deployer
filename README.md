@@ -1,5 +1,6 @@
 # ml-deployer
 
+## CI workflow
 The CI reusable workflow requires that the calling repository contains a makefile with the following targets:
 * ci: Runs the repository tests
 * lint: Runs the go linter
