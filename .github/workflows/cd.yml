@@ -186,6 +186,7 @@ jobs:
         helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.VERSION }} --set app.version=${{ env.VERSION }} | kubectl apply -f -
 
     - name: Post Slack Notification
+      if: inputs.notification == true
       uses: slackapi/slack-github-action@v1.15.0
       with:
         channel-id: ${{ secrets.slack_channel_id }}
