@@ -20,6 +20,7 @@ jobs:
       repository: mintlist
       image: ml-deployer
       environment: ${{ github.event.inputs.environment }}
+      notification: false
     secrets:
       slack_bot_token: ${{ secrets.SLACK_BOT_TOKEN }}
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
