@@ -11,6 +11,11 @@ on:
         description: 'Cluster name'
         required: false
         type: string
+      location:
+        description: 'The location of the GAR'
+        required: false
+        default: us-central1
+        type: string
       go_version:
         description: 'Go version'
         required: false
