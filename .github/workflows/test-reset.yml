@@ -1,11 +1,7 @@
 name: Test Reset
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to deploy'
-        required: false
-        default: 'dev'
+  push:
+    branches: [ dev ]
 
 permissions:
   id-token: write
