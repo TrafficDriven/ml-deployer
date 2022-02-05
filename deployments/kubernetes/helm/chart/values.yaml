@@ -1,0 +1,6 @@
+app:
+  version: 0.0.1
+  targetRevision: dev
+  image.pullPolicy: IfNotPresent
+  image:
+    tag: 0.0.1-dev
