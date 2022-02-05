@@ -1,4 +1,4 @@
-name: Test Reset
+name: Test RESET
 on:
   push:
     branches: [ dev ]
