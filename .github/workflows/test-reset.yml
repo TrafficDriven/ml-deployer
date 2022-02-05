@@ -8,15 +8,13 @@ permissions:
   contents: read
 
 jobs:
-  call-cd:
+  call-reset:
     uses: TrafficDriven/ml-deployer/.github/workflows/reset.yml@dev
     with:
-      go_version: v1.17
-      gke_project_id: tdt-mintlist-${{ github.event.inputs.environment }}
+      gke_project_id: tdt-mintlist-dev
       repository: mintlist
-      image: ml-deployer
-      environment: ${{ github.event.inputs.environment }}
-      gke_cluster: tdt-ml-${{ github.event.inputs.environment }}
+      environment: dev
+      gke_cluster: tdt-ml-dev
     secrets:
       workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
       service_account: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
