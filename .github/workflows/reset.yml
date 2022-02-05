@@ -1,0 +1,98 @@
+name: Reset
+
+on:
+  workflow_call:
+    inputs:
+      gke_project_id:
+        description: 'GKE Project ID'
+        required: false
+        type: string
+      gke_cluster:
+        description: 'Cluster name'
+        required: false
+        type: string
+      go_version:
+        description: 'Go version'
+        required: false
+        default: v1.17
+        type: string
+      environment:
+        description: 'Environment'
+        required: false
+        default: dev
+        type: string
+      helm_chart_file:
+        description: 'Helm Chart'
+        required: false
+        default: 'deployments/kubernetes/helm/chart'
+        type: string
+      version_target:
+        description: 'The makefile target for getting the application version'
+        required: false
+        default: version
+        type: string
+    secrets:
+      workload_identity_provider:
+        description: 'Workload Identity Provider'
+        required: true
+      service_account:
+        description: 'Service Account email address'
+        required: true
+
+jobs:
+  # Deploy Branch to Kubernetes Cluster
+  reset-environment:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout Deploy Code
+      uses: actions/checkout@v2
+  
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ inputs.go_version }}
+
+    - name: Echo Input Information
+      shell: bash
+      run: |-
+        echo "You are deploying from the ${GITHUB_REF##*/} branch to the ${{ inputs.environment }} environment" 
+    
+    - name: Set branch name
+      shell: bash
+      run: |-
+        echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+        echo "ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
+        echo "NODE_ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
+
+    - name: Set Env With Version
+      id: get_version_name
+      shell: bash
+      run: |-
+        echo "VERSION=v$(make ${{ inputs.version_target }}).$(echo ${GITHUB_SHA::7})"  >> $GITHUB_ENV
+        echo "RAW_VERSION=v$(make ${{ inputs.version_target }})"  >> $GITHUB_ENV
+    
+    - name: Set up gCloud SDK
+      uses: 'google-github-actions/setup-gcloud@v0.3.0'
+      with:
+        project_id: ${{ inputs.repository_project_id }}
+
+    - name: Authenticate to Google Cloud
+      uses: 'google-github-actions/auth@v0.4.4'
+      with:
+        workload_identity_provider: ${{ secrets.workload_identity_provider }}
+        service_account: ${{ secrets.service_account }}
+
+    - name: Get the GKE credentials so we can deploy to the cluster
+      if: inputs.deploy == true
+      uses: google-github-actions/get-gke-credentials@v0.5.0
+      with:
+        cluster_name: ${{ inputs.gke_cluster }}
+        location: ${{ inputs.location }}
+        project_id: ${{ inputs.gke_project_id }}
+
+    - name: Deploy to Kubernetes Cluster
+      if: inputs.deploy == true
+      shell: bash
+      run: |-
+        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.VERSION }} --set app.version=${{ env.VERSION }} | kubectl apply -f -

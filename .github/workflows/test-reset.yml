@@ -1,0 +1,26 @@
+name: Test Reset
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: false
+        default: 'dev'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  call-cd:
+    uses: TrafficDriven/ml-deployer/.github/workflows/reset.yml@dev
+    with:
+      go_version: v1.17
+      gke_project_id: tdt-mintlist-${{ github.event.inputs.environment }}
+      repository: mintlist
+      image: ml-deployer
+      environment: ${{ github.event.inputs.environment }}
+      gke_cluster: tdt-ml-${{ github.event.inputs.environment }}
+    secrets:
+      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+      service_account: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}
