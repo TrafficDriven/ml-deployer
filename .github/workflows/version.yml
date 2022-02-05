@@ -24,7 +24,6 @@ on:
 
 jobs:
   version:
-    if: "!contains(github.event.head_commit.author.name, 'github-actions[bot]')"
     runs-on: ubuntu-latest
     outputs:
       bumped: ${{ steps.bump_version.outputs.bumped }}

@@ -22,6 +22,9 @@ permissions:
 ```
 When the CD workflow is used with deploy set to false, it sets the ref for the checkout action: https://github.com/actions/checkout to the main branch by default. This default can be overidden by setting the branch input.
 
+## RESET workflow
+The RESET reusable workflow has similar requirement as the CD workflow.
+
 ## Developing
 
 * Delete any existing dev branch.
@@ -30,9 +33,9 @@ When the CD workflow is used with deploy set to false, it sets the ref for the c
 * Update the workflow with your code changes.
 
 ## Testing
-* Push to the dev branch will trigger and test the **ci.yml** workflow and the **version.yml** workflow.
+* Push to the dev branch will trigger and test the **ci.yml**, **reset.yml** and **version.yml** workflow.
 * Test the **version.yml** workflow fully by adding [bugfix] or [feature] to your commit messages.
-* The **cd.yml** workflow must be tested manually by deploying the dev branch to dev environment.
+* The **cd.yml** workflow must be tested by manual trigger.
 * The release (deployment on merge to main) process can be tested by merging the dev branch to main with [bugfix] or [feature] in the merge commit message.
 * Note to add the #none or #minor on merging to main to determine how the reusable workflow tag should be bumped.
 * Merge the dev branch into the main branch.

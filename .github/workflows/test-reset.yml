@@ -1,0 +1,19 @@
+name: Test RESET
+on:
+  push:
+    branches: [ dev ]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  call-reset:
+    uses: TrafficDriven/ml-deployer/.github/workflows/reset.yml@dev
+    with:
+      gke_project_id: tdt-mintlist-dev
+      environment: dev
+      gke_cluster: tdt-ml-dev
+    secrets:
+      workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+      service_account: ${{ secrets.GOOGLE_SERVICE_ACCOUNT }}

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ml-deployer
+  namespace: default
+data:
+   name: ml-deployer
