@@ -12,7 +12,6 @@ jobs:
     uses: TrafficDriven/ml-deployer/.github/workflows/reset.yml@dev
     with:
       gke_project_id: tdt-mintlist-dev
-      repository: mintlist
       environment: dev
       gke_cluster: tdt-ml-dev
     secrets:
