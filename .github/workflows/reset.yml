@@ -66,24 +66,22 @@ jobs:
     - name: Set branch name
       shell: bash
       run: |-
-        echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
-        echo "ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
-        echo "NODE_ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
+        echo "CLUSTER_ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
+        echo "ENV=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
     - name: Set Env With Version
       id: get_version_name
       shell: bash
       run: |-
-        echo "VERSION=v$(make ${{ inputs.version_target }}).$(echo ${GITHUB_SHA::7})"  >> $GITHUB_ENV
-        echo "RAW_VERSION=v$(make ${{ inputs.version_target }})"  >> $GITHUB_ENV
+        echo "VERSION=v$(make ${{ inputs.version_target }})" >> $GITHUB_ENV
     
     - name: Set up gCloud SDK
-      uses: 'google-github-actions/setup-gcloud@v0.3.0'
+      uses: 'google-github-actions/setup-gcloud@v0.5.0'
       with:
         project_id: ${{ inputs.repository_project_id }}
 
     - name: Authenticate to Google Cloud
-      uses: 'google-github-actions/auth@v0.4.4'
+      uses: 'google-github-actions/auth@v0.6.0'
       with:
         workload_identity_provider: ${{ secrets.workload_identity_provider }}
         service_account: ${{ secrets.service_account }}
@@ -98,4 +96,4 @@ jobs:
     - name: Deploy to Kubernetes Cluster
       shell: bash
       run: |-
-        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.VERSION }} --set app.version=${{ env.VERSION }} | kubectl apply -f -
+        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.CLUSTER_ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.VERSION }} --set app.version=${{ env.VERSION }} | kubectl apply -f -
