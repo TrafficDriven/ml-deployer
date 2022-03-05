@@ -91,7 +91,6 @@ jobs:
         max_attempts: 5
         command: git push
         on_retry_command: |
-
           git config pull.rebase false
           git pull origin ${{ env.BRANCH }}
           git commit --amend -m "${{ steps.commit_message.outputs.message }}"
