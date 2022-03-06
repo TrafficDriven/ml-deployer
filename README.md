@@ -37,5 +37,4 @@ The RESET reusable workflow has similar requirement as the CD workflow.
 * Test the **version.yml** workflow fully by adding [bugfix] or [feature] to your commit messages.
 * The **cd.yml** workflow must be tested by manual trigger.
 * The release (deployment on merge to main) process can be tested by merging the dev branch to main with [bugfix] or [feature] in the merge commit message.
-* Note to add the #none or #minor on merging to main to determine how the reusable workflow tag should be bumped.
-* Merge the dev branch into the main branch.
+* Merge the dev branch into the main branch. Note to add the #none or #minor on merging to main to determine how the reusable workflow tag should be bumped.

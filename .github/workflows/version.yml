@@ -8,6 +8,11 @@ on:
         required: false
         default: v1.16
         type: string
+      skip_ci:
+        description: 'Add Skip CI to comment'
+        required: false
+        default: true
+        type: boolean
       bump_target:
         description: 'The makefile target for bumping application version'
         required: false
@@ -65,12 +70,22 @@ jobs:
         echo "::set-output name=version::$(make ${{ inputs.bump_target }})"
         echo "::set-output name=bumped::true"
 
+    - name: Commit Message
+      if: env.PUSH == 1
+      id: commit_message
+      run: |
+        if ${{ inputs.skip_ci }} ; then
+          echo "::set-output name=message::Bump version to ${{ steps.bump_version.outputs.version }} [skip ci]"
+        else
+          echo "::set-output name=message::Bump version to ${{ steps.bump_version.outputs.version }}"
+        fi
+  
     - name: Commit files
       if: env.PUSH == 1
       run: |
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git diff-index --quiet HEAD || git commit -m "Bump version to ${{ steps.bump_version.outputs.version }} [skip ci]" -a
+        git diff-index --quiet HEAD || git commit -m "${{ steps.commit_message.outputs.message }}" -a
 
     - name: Push changes
       if: env.PUSH == 1
@@ -83,3 +98,4 @@ jobs:
 
           git config pull.rebase false
           git pull origin ${{ env.BRANCH }}
+          git commit --amend -m "${{ steps.commit_message.outputs.message }}"

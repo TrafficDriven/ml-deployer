@@ -14,7 +14,7 @@ const (
 func main() {
 
 	rand.Seed(time.Now().UTC().UnixNano())
-	version := fmt.Sprintf("0.0.%d\n", rand.Intn(10))
+	version := fmt.Sprintf("0.0.%d\n", rand.Intn(1000))
     d1 := []byte(version)
 
 	filename := os.Getenv(configFileName)
