@@ -74,8 +74,12 @@ jobs:
       if: env.PUSH == 1
       id: commit_message
       run: |
-        echo "::set-output name=message::Bump version to ${{ steps.bump_version.outputs.version }} [skip ci]"
-
+        if ${{ inputs.skip_ci }} ; then
+          echo "::set-output name=message::Bump version to ${{ steps.bump_version.outputs.version }} [skip ci]"
+        else
+          echo "::set-output name=message::Bump version to ${{ steps.bump_version.outputs.version }}"
+        fi
+  
     - name: Commit files
       if: env.PUSH == 1
       run: |
