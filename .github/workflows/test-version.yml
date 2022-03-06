@@ -17,7 +17,7 @@ jobs:
       go_version: v1.17
       skip_ci: false
     secrets:
-      token: ${{ secrets.GIHUB_TOKEN }}
+      token: ${{ secrets.GITHUB_TOKEN }}
 
   call-cr-if-bumped:
     if: needs.call-version.outputs.bumped
