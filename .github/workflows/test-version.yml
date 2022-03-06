@@ -8,6 +8,7 @@ permissions:
   contents: read
 
 jobs:
+  # This would conflict with test-version-github and may fail, but that's fine too
   call-version:
     uses: TrafficDriven/ml-deployer/.github/workflows/version.yml@dev
     with:
