@@ -11,16 +11,6 @@ jobs:
     secrets:
       token: ${{ secrets.PUSH_TOKEN }}
 
-  call-version-with-github:
-    if: needs.call-version.outputs.bumped
-    needs: call-version
-    uses: TrafficDriven/ml-deployer/.github/workflows/version.yml@dev
-    with:
-      go_version: v1.17
-      skip_ci: false
-    secrets:
-      token: ${{ secrets.GITHUB_TOKEN }}
-
   call-cr-if-bumped:
     if: needs.call-version.outputs.bumped
     needs: call-version
