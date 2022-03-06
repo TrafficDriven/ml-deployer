@@ -12,6 +12,7 @@ jobs:
       token: ${{ secrets.PUSH_TOKEN }}
 
   call-version-with-github:
+    if: needs.call-version.outputs.bumped
     uses: TrafficDriven/ml-deployer/.github/workflows/version.yml@dev
     with:
       go_version: v1.17
