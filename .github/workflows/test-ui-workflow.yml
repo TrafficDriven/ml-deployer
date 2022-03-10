@@ -1,0 +1,14 @@
+name: UI Workflow
+
+on:
+  push:
+    branches:
+    - 'release-**'
+
+jobs:
+  version:
+    uses: TrafficDriven/ml-deployer/.github/workflows/version.yml@v0.3.1
+    with:
+      skip_ci: false
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
