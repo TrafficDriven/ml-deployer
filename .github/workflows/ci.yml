@@ -16,7 +16,7 @@ on:
       go_lint_version:
         description: 'Go lint version'
         required: false
-        default: v1.43.0
+        default: v1.45.0
         type: string
       setup:
         description: 'Run setup makefile. If set to true, a make target named "setup" must exist'
