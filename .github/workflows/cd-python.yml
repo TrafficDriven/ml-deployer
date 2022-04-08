@@ -95,11 +95,11 @@ jobs:
 
     - if: inputs.deploy == true
       name: Checkout Deploy Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
   
     - if: inputs.deploy == false
       name: Checkout Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         ref: ${{ inputs.branch }}
 
