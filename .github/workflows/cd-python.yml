@@ -1,0 +1,180 @@
+name: CD
+
+on:
+  workflow_call:
+    inputs:
+      repository_project_id:
+        description: 'GAR Project ID'
+        required: false
+        type: string
+      gke_project_id:
+        description: 'GKE Project ID'
+        required: false
+        type: string
+      gke_cluster:
+        description: 'Cluster name'
+        required: false
+        type: string
+      location:
+        description: 'The location of the GAR'
+        required: false
+        default: us-central1
+        type: string
+      repository:
+        description: 'Image Repository'
+        required: false
+        type: string
+      image:
+        description: 'Image to be pushed'
+        required: false
+        type: string
+      environment:
+        description: 'Environment'
+        required: false
+        default: dev
+        type: string
+      helm_chart_file:
+        description: 'Helm Chart'
+        required: false
+        default: 'deployments/kubernetes/helm/chart'
+        type: string
+      deploy:
+        description: 'Deploy to Cluster'
+        required: false
+        default: false
+        type: boolean
+      branch:
+        description: 'The branch to checkout if deploy is set to false (the default)'
+        required: false
+        default: main
+        type: string
+      notification:
+        description: 'Send slack notification'
+        required: false
+        default: true
+        type: boolean
+      setup:
+        description: 'Run setup makefile'
+        required: false
+        default: false
+        type: boolean
+      version_target:
+        description: 'The makefile target for getting the application version'
+        required: false
+        default: version
+        type: string
+      docker_target:
+        description: 'The makefile target for building the application docker image'
+        required: false
+        default: docker-image
+        type: string
+      application_name:
+        description: 'The application deployed. Required in mono repository'
+        required: false
+        default: "-"
+        type: string
+    secrets:
+      slack_channel_id:
+        description: 'Slack Channel ID.'
+        required: false
+      slack_bot_token:
+        description: 'Slack Token'
+        required: true
+      workload_identity_provider:
+        description: 'Workload Identity Provider'
+        required: true
+      service_account:
+        description: 'Service Account email address'
+        required: true
+
+jobs:
+  # Builds, Publish and Deploys docker containers to a kubernetes cluster
+  release-deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - if: inputs.deploy == true
+      name: Checkout Deploy Code
+      uses: actions/checkout@v2
+  
+    - if: inputs.deploy == false
+      name: Checkout Code
+      uses: actions/checkout@v2
+      with:
+        ref: ${{ inputs.branch }}
+
+    - name: GHA Environment setup
+      if: inputs.setup == true
+      shell: bash
+      run: |-
+        make setup
+
+    - name: Echo Input Information
+      shell: bash
+      run: |-
+        echo "You are deploying from the ${GITHUB_REF##*/} branch to the ${{ inputs.environment }} environment" 
+    
+    - name: Setting branch name
+      shell: bash
+      run: |-
+        echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+        echo "ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
+        echo "NODE_ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
+        echo "PROJECT_NAME=$(echo ${{ inputs.image }})" >> $GITHUB_ENV
+
+    - name: Setting Env With Version
+      id: get_version_name
+      shell: bash
+      run: |-
+        echo "VERSION=v$(make ${{ inputs.version_target }}).$(echo ${GITHUB_SHA::7})"  >> $GITHUB_ENV
+        echo "RAW_VERSION=v$(make ${{ inputs.version_target }})"  >> $GITHUB_ENV
+    
+    - name: Set up gCloud SDK
+      uses: 'google-github-actions/setup-gcloud@v0.5.1'
+      with:
+        project_id: ${{ inputs.repository_project_id }}
+
+    - name: Authenticate to Google Cloud
+      uses: 'google-github-actions/auth@v0.6.0'
+      with:
+        workload_identity_provider: ${{ secrets.workload_identity_provider }}
+        service_account: ${{ secrets.service_account }}
+
+    - name: Configure docker
+      run: |
+        gcloud auth configure-docker us-central1-docker.pkg.dev -q
+
+    - name: Run Docker Build
+      shell: bash
+      run: |-
+        make ${{ inputs.docker_target }}
+
+    - name: Publish the Docker image to Google Container Registry
+      shell: bash
+      run: |-
+        docker tag ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
+        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
+        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }}
+
+    - name: Get the GKE credentials so we can deploy to the cluster
+      if: inputs.deploy == true
+      uses: google-github-actions/get-gke-credentials@v0.6.0
+      with:
+        cluster_name: ${{ inputs.gke_cluster }}
+        location: ${{ inputs.location }}
+        project_id: ${{ inputs.gke_project_id }}
+
+    - name: Deploy to Kubernetes Cluster
+      if: inputs.deploy == true
+      shell: bash
+      run: |-
+        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.VERSION }} --set app.version=${{ env.VERSION }} | kubectl apply -f -
+
+    - name: Post Slack Notification
+      if: inputs.notification == true
+      uses: slackapi/slack-github-action@v1.18.0
+      with:
+        channel-id: ${{ secrets.slack_channel_id }}
+        slack-message: '*${{ github.actor }}* is shipping *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{ env.ENV }}* environment :tada:'
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}
