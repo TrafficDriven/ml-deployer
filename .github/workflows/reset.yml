@@ -87,7 +87,7 @@ jobs:
         service_account: ${{ secrets.service_account }}
 
     - name: Get the GKE credentials so we can deploy to the cluster
-      uses: google-github-actions/get-gke-credentials@v0.6.0
+      uses: google-github-actions/get-gke-credentials@v0.8.0
       with:
         cluster_name: ${{ inputs.gke_cluster }}
         location: ${{ inputs.location }}
