@@ -52,7 +52,6 @@ jobs:
       uses: golangci/golangci-lint-action@v3
       with:
         version: ${{ inputs.go_lint_version }}
-        go-version: ${{ inputs.go_version }}
 
     - name: Setup Node
       uses: actions/setup-node@v2
