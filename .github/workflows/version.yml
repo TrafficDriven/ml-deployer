@@ -6,7 +6,7 @@ on:
       go_version:
         description: 'Go version'
         required: false
-        default: v1.16
+        default: v1.17
         type: string
       skip_ci:
         description: 'Add Skip CI to comment'
@@ -34,13 +34,13 @@ jobs:
       bumped: ${{ steps.bump_version.outputs.bumped }}
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
         token: ${{ secrets.token }}
 
     - name: Setup Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: ${{ inputs.go_version }}
 
