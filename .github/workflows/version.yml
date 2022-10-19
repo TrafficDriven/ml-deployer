@@ -67,17 +67,17 @@ jobs:
       if: env.PUSH == 1
       id: bump_version
       run: |
-        echo "::set-output name=version::$(make ${{ inputs.bump_target }})"
-        echo "::set-output name=bumped::true"
+        echo "version=$(make ${{ inputs.bump_target }})" >> $GITHUB_OUTPUT
+        echo "bumped=true" >> $GITHUB_OUTPUT
 
     - name: Commit Message
       if: env.PUSH == 1
       id: commit_message
       run: |
         if ${{ inputs.skip_ci }} ; then
-          echo "::set-output name=message::Bump version to ${{ steps.bump_version.outputs.version }} [skip ci]"
+          echo "message=Bump version to ${{ steps.bump_version.outputs.version }} [skip ci]" >> $GITHUB_OUTPUT
         else
-          echo "::set-output name=message::Bump version to ${{ steps.bump_version.outputs.version }}"
+          echo "message=Bump version to ${{ steps.bump_version.outputs.version }}" >> $GITHUB_OUTPUT
         fi
   
     - name: Commit files
