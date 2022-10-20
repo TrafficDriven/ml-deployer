@@ -14,10 +14,6 @@ on:
         default: .
         type: string
 
-defaults:
-  run:
-    working-directory: ${{ inputs.working_directory }}
-
 jobs:
   scanner:
     runs-on: ubuntu-latest
