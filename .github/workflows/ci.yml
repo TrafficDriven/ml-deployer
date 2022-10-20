@@ -28,6 +28,11 @@ on:
         required: false
         default: true
         type: boolean
+      working_directory:
+        description: 'The working directory (root) for running workflow. Usually, this is ., the root directory of the app'
+        required: false
+        default: "."
+        type: string
 
 jobs:
   # Runs continuous integration test
@@ -35,6 +40,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on
+    strategy:
+      matrix:
+        working_dir: ${{ inputs.working_directory }}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
@@ -74,6 +82,7 @@ jobs:
 
     - if: inputs.gosec == true
       name: Gosec Security Scanner
+      working-directory: ${{ matrix.working_dir }}
       uses: securego/gosec@master
       with:
         args: ./...
