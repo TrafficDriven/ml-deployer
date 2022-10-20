@@ -16,7 +16,7 @@ on:
       go_lint_version:
         description: 'Go lint version'
         required: false
-        default: v1.45.0
+        default: latest
         type: string
       setup:
         description: 'Run setup makefile. If set to true, a make target named "setup" must exist'
@@ -82,10 +82,6 @@ jobs:
       uses: azure/setup-helm@v2.0
       with:
         version: v3.6.3
-
-    - name: Run Lint
-      run: |
-        make lint
 
     - name: Run helm lint
       run: |
