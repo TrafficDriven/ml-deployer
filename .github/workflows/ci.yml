@@ -31,7 +31,7 @@ on:
       working_directory:
         description: 'The working directory (root) for running workflow. Usually, this is ., the root directory of the app'
         required: false
-        default: "."
+        default: '["."]'
         type: string
 
 jobs:
@@ -42,7 +42,7 @@ jobs:
       GO111MODULE: on
     strategy:
       matrix:
-        working_dir: ${{ inputs.working_directory }}
+        working_dir: ${{ fromJSON(inputs.working_directory) }}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
