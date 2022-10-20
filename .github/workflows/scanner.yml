@@ -19,16 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GO111MODULE: on
-    strategy:
-      matrix:
-        working_dir: ${{ inputs.working_directory }}
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
 
     - if: inputs.gosec == true
       name: Gosec Security Scanner
-      working-directory: ${{ matrix.working_dir }}
+      working-directory: ${{ inputs.working_directory }}
       uses: securego/gosec@master
       with:
         args: ./...
