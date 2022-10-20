@@ -6,7 +6,7 @@ on:
       go_version:
         description: 'Go version'
         required: false
-        default: v1.16
+        default: v1.17
         type: string
       skip_ci:
         description: 'Add Skip CI to comment'
@@ -34,13 +34,13 @@ jobs:
       bumped: ${{ steps.bump_version.outputs.bumped }}
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         fetch-depth: 0
         token: ${{ secrets.token }}
 
     - name: Setup Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v3
       with:
         go-version: ${{ inputs.go_version }}
 
@@ -67,17 +67,17 @@ jobs:
       if: env.PUSH == 1
       id: bump_version
       run: |
-        echo "::set-output name=version::$(make ${{ inputs.bump_target }})"
-        echo "::set-output name=bumped::true"
+        echo "version=$(make ${{ inputs.bump_target }})" >> $GITHUB_OUTPUT
+        echo "bumped=true" >> $GITHUB_OUTPUT
 
     - name: Commit Message
       if: env.PUSH == 1
       id: commit_message
       run: |
         if ${{ inputs.skip_ci }} ; then
-          echo "::set-output name=message::Bump version to ${{ steps.bump_version.outputs.version }} [skip ci]"
+          echo "message=Bump version to ${{ steps.bump_version.outputs.version }} [skip ci]" >> $GITHUB_OUTPUT
         else
-          echo "::set-output name=message::Bump version to ${{ steps.bump_version.outputs.version }}"
+          echo "message=Bump version to ${{ steps.bump_version.outputs.version }}" >> $GITHUB_OUTPUT
         fi
   
     - name: Commit files

@@ -95,11 +95,11 @@ jobs:
 
     - if: inputs.deploy == true
       name: Checkout Deploy Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
   
     - if: inputs.deploy == false
       name: Checkout Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         ref: ${{ inputs.branch }}
 
@@ -130,7 +130,7 @@ jobs:
         echo "RAW_VERSION=v$(make ${{ inputs.version_target }})"  >> $GITHUB_ENV
     
     - name: Set up gCloud SDK
-      uses: 'google-github-actions/setup-gcloud@v0.5.1'
+      uses: 'google-github-actions/setup-gcloud@v0.6.2'
       with:
         project_id: ${{ inputs.repository_project_id }}
 
@@ -158,7 +158,7 @@ jobs:
 
     - name: Get the GKE credentials so we can deploy to the cluster
       if: inputs.deploy == true
-      uses: google-github-actions/get-gke-credentials@v0.6.0
+      uses: google-github-actions/get-gke-credentials@v0.8.2
       with:
         cluster_name: ${{ inputs.gke_cluster }}
         location: ${{ inputs.location }}

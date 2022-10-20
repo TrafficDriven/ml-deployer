@@ -11,12 +11,12 @@ on:
       node_version:
         description: 'Node version'
         required: false
-        default: 14
+        default: 16
         type: string
       go_lint_version:
         description: 'Go lint version'
         required: false
-        default: v1.45.0
+        default: latest
         type: string
       setup:
         description: 'Run setup makefile. If set to true, a make target named "setup" must exist'
@@ -26,16 +26,18 @@ on:
       gosec:
         description: 'Run Gosec Security Scanner'
         required: false
-        default: false
+        default: true
         type: boolean
 
 jobs:
   # Runs continuous integration test
   test:
     runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Presetup environment
       if: inputs.setup == true
@@ -52,9 +54,10 @@ jobs:
       uses: golangci/golangci-lint-action@v3
       with:
         version: ${{ inputs.go_lint_version }}
+        args: --timeout 3m
 
     - name: Setup Node
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ inputs.node_version }}
 
@@ -72,19 +75,14 @@ jobs:
 
     - if: inputs.gosec == true
       name: Gosec Security Scanner
-      run: |
-        export PATH=$PATH:$(go env GOPATH)/bin
-        go install github.com/securego/gosec/v2/cmd/gosec@v2.9.5
-        gosec './...'
+      uses: securego/gosec@master
+      with:
+        args: ./...
 
     - name: Set up Helm
       uses: azure/setup-helm@v2.0
       with:
         version: v3.6.3
-
-    - name: Run Lint
-      run: |
-        make lint
 
     - name: Run helm lint
       run: |
