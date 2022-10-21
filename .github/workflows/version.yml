@@ -68,7 +68,8 @@ jobs:
       id: bump_version
       run: |
         ml_version=$(make ${{ inputs.bump_target }})
-        echo ml_version=$(echo $ml_version | rev | cut -d " " -f1 | rev)
+        echo "${ml_version}"
+        ml_version=$(echo $ml_version | rev | cut -d " " -f1 | rev)
         echo "ml_version=${ml_version}" >> $GITHUB_OUTPUT
         echo "bumped=true" >> $GITHUB_OUTPUT
 
