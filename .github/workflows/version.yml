@@ -67,7 +67,8 @@ jobs:
       if: env.PUSH == 1
       id: bump_version
       run: |
-        echo "ml_version=$(make ${{ inputs.bump_target }})" >> $GITHUB_OUTPUT
+        ml_version=$(make ${{ inputs.bump_target }})
+        echo "ml_version=$ml_version" >> $GITHUB_OUTPUT
         echo "bumped=true" >> $GITHUB_OUTPUT
 
     - name: Commit Message
