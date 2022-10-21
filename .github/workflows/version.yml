@@ -67,7 +67,7 @@ jobs:
       if: env.PUSH == 1
       id: bump_version
       run: |
-        echo "version=$(make ${{ inputs.bump_target }})" >> $GITHUB_OUTPUT
+        echo "ml_version=$(make ${{ inputs.bump_target }})" >> $GITHUB_OUTPUT
         echo "bumped=true" >> $GITHUB_OUTPUT
 
     - name: Commit Message
@@ -75,9 +75,9 @@ jobs:
       id: commit_message
       run: |
         if ${{ inputs.skip_ci }} ; then
-          echo "message=Bump version to ${{ steps.bump_version.outputs.version }} [skip ci]" >> $GITHUB_OUTPUT
+          echo "message=Bump version to ${{ steps.bump_version.outputs.ml_version }} [skip ci]" >> $GITHUB_OUTPUT
         else
-          echo "message=Bump version to ${{ steps.bump_version.outputs.version }}" >> $GITHUB_OUTPUT
+          echo "message=Bump version to ${{ steps.bump_version.outputs.ml_version }}" >> $GITHUB_OUTPUT
         fi
   
     - name: Commit files
