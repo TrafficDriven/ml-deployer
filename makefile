@@ -11,6 +11,7 @@ setup:
 
 bump:
 	@CONFIG_FILE=config.yml go run tools/bump/main.go
+	@CONFIG_FILE=config.yml go run tools/bump/main.go
 
 bump1:
 	@CONFIG_FILE=config1.yml go run tools/bump/main.go
