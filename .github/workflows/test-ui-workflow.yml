@@ -7,7 +7,7 @@ on:
 
 jobs:
   version:
-    uses: TrafficDriven/ml-deployer/.github/workflows/version.yml@v0.3.1
+    uses: TrafficDriven/ml-deployer/.github/workflows/version.yml@dev
     with:
       skip_ci: false
     secrets:

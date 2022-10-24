@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   call-version:
-    uses: TrafficDriven/ml-deployer/.github/workflows/version.yml@main
+    uses: TrafficDriven/ml-deployer/.github/workflows/version.yml@dev
     secrets:
       token: ${{ secrets.PUSH_TOKEN }}
 
