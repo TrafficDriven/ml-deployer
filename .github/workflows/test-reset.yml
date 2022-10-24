@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   call-reset:
-    uses: TrafficDriven/ml-deployer/.github/workflows/reset.yml@main
+    uses: TrafficDriven/ml-deployer/.github/workflows/reset.yml@dev
     with:
       gke_project_id: tdt-mintlist-dev
       environment: dev

@@ -135,7 +135,7 @@ jobs:
         project_id: ${{ inputs.repository_project_id }}
 
     - name: Authenticate to Google Cloud
-      uses: 'google-github-actions/auth@v0.6.0'
+      uses: 'google-github-actions/auth@v0.8.3'
       with:
         workload_identity_provider: ${{ secrets.workload_identity_provider }}
         service_account: ${{ secrets.service_account }}
@@ -172,7 +172,7 @@ jobs:
 
     - name: Post Slack Notification
       if: inputs.notification == true
-      uses: slackapi/slack-github-action@v1.18.0
+      uses: slackapi/slack-github-action@v1.23.0
       with:
         channel-id: ${{ secrets.slack_channel_id }}
         slack-message: '*${{ github.actor }}* is shipping *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{ env.ENV }}* environment :tada:'
