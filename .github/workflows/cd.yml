@@ -187,7 +187,7 @@ jobs:
 
     - name: Post Slack Notification
       if: inputs.notification == true
-      uses: slackapi/slack-github-action@v1.18.0
+      uses: slackapi/slack-github-action@v1.23.0
       with:
         channel-id: ${{ secrets.slack_channel_id }}
         slack-message: '*${{ github.actor }}* is shipping *${{ inputs.application_name }}* from *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{ env.ENV }}* environment :tada:'
