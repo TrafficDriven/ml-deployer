@@ -103,6 +103,9 @@ jobs:
       with:
         ref: ${{ inputs.branch }}
 
+    - if: inputs.setup == true
+      uses: abbbi/github-actions-tune@v1
+
     - name: GHA Environment setup
       if: inputs.setup == true
       shell: bash

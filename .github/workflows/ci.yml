@@ -39,6 +39,9 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
 
+    - if: inputs.setup == true
+      uses: abbbi/github-actions-tune@v1
+
     - name: Presetup environment
       if: inputs.setup == true
       shell: bash
@@ -49,6 +52,7 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: ${{ inputs.go_version }}
+        cache: true
 
     - name: Setup golangci-lint
       uses: golangci/golangci-lint-action@v3
