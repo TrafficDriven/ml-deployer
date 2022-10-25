@@ -57,6 +57,7 @@ jobs:
       uses: actions/setup-go@v3
       with:
         go-version: ${{ inputs.go_version }}
+        cache: true
 
     - name: Echo Input Information
       shell: bash
