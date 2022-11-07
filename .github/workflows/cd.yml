@@ -174,15 +174,16 @@ jobs:
         else
           echo "SHOULD_BUILD=yes" >> $GITHUB_OUTPUT
         fi
+        echo "Will we be creating a new docker image? ${SHOULD_BUILD}"
 
     - name: Run Docker Build
-      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD }} == yes
+      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
       shell: bash
       run: |-
         make ${{ inputs.docker_target }}
 
     - name: Publish the Docker image to Google Container Registry
-      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD }} == yes
+      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
       shell: bash
       run: |-
         docker tag ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
