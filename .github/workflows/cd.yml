@@ -171,10 +171,12 @@ jobs:
         OUTPUT=$(gcloud container images list-tags ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }})
         if echo "$OUTPUT" | grep -q "${{ env.VERSION }}"; then
           echo "SHOULD_BUILD=no"  >> $GITHUB_OUTPUT
+          echo "We will not be creating a new docker image"
         else
           echo "SHOULD_BUILD=yes" >> $GITHUB_OUTPUT
+          echo "We will be creating a new docker image"
         fi
-        echo "Will we be creating a new docker image? ${SHOULD_BUILD}"
+        
 
     - name: Run Docker Build
       if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
