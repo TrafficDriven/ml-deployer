@@ -162,14 +162,26 @@ jobs:
 
     - name: Configure docker
       run: |
-        gcloud auth configure-docker us-central1-docker.pkg.dev -q
+        gcloud auth configure-docker ${{ inputs.location }}-docker.pkg.dev -q
+
+    - name: Check if docker build is required
+      shell: bash
+      run: |-
+        OUTPUT=$(gcloud container images list-tags ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }})
+        if echo "$OUTPUT" | grep -q "${{ env.VERSION }}"; then
+          echo "SHOULD_BUILD=no"  >> $GITHUB_ENV
+        else
+          echo "SHOULD_BUILD=yes"  >> $GITHUB_ENV
+        fi
 
     - name: Run Docker Build
+      if: env.SHOULD_BUILD == yes
       shell: bash
       run: |-
         make ${{ inputs.docker_target }}
 
     - name: Publish the Docker image to Google Container Registry
+      if: env.SHOULD_BUILD == yes
       shell: bash
       run: |-
         docker tag ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
