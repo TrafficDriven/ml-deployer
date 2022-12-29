@@ -161,7 +161,7 @@ jobs:
 
     - name: Get the GKE credentials so we can deploy to the cluster
       if: inputs.deploy == true
-      uses: google-github-actions/get-gke-credentials@v0.8.2
+      uses: google-github-actions/get-gke-credentials@v1.0.1
       with:
         cluster_name: ${{ inputs.gke_cluster }}
         location: ${{ inputs.location }}
