@@ -148,17 +148,17 @@ jobs:
       run: |-
         echo "VERSION=v$(make ${{ inputs.version_target }}).$(echo ${GITHUB_SHA::7})"  >> $GITHUB_ENV
         echo "RAW_VERSION=v$(make ${{ inputs.version_target }})"  >> $GITHUB_ENV
-    
-    - name: Set up gCloud SDK
-      uses: 'google-github-actions/setup-gcloud@v1.0.1'
-      with:
-        project_id: ${{ inputs.repository_project_id }}
 
     - name: Authenticate to Google Cloud
-      uses: 'google-github-actions/auth@v1.0.0'
+      uses: 'google-github-actions/auth@v1'
       with:
         workload_identity_provider: ${{ secrets.workload_identity_provider }}
         service_account: ${{ secrets.service_account }}
+
+    - name: Set up gCloud SDK
+      uses: 'google-github-actions/setup-gcloud@v1'
+      with:
+        project_id: ${{ inputs.repository_project_id }}
 
     - name: Configure docker
       run: |
