@@ -7,7 +7,7 @@ jobs:
   call-version-with-github:
     uses: TrafficDriven/ml-deployer/.github/workflows/version.yml@dev
     with:
-      go_version: v1.18
+      go_version: v1.20
       skip_ci: false
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}

@@ -6,7 +6,7 @@ on:
       go_version:
         description: 'Go version'
         required: false
-        default: v1.18
+        default: v1.20
         type: string
       skip_ci:
         description: 'Add Skip CI to comment'
