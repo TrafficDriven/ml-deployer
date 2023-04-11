@@ -13,8 +13,8 @@ const (
 
 func main() {
 
-	rand.Seed(time.Now().UTC().UnixNano())
-	version := fmt.Sprintf("0.0.%d\n", rand.Intn(1000)) //#nosec G404
+	r := rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
+	version := fmt.Sprintf("0.0.%d\n", r.Intn(1000)) //#nosec G404
 	d1 := []byte(version)
 
 	filename := os.Getenv(configFileName)
