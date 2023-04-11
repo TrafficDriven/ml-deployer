@@ -1,10 +1,10 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
+	"math/big"
 	"os"
-	"time"
 )
 
 const (
@@ -13,12 +13,16 @@ const (
 
 func main() {
 
-	r := rand.New(rand.NewSource(time.Now().UTC().UnixNano()))
-	version := fmt.Sprintf("0.0.%d\n", r.Intn(1000)) //#nosec G404
+	nBig, err := rand.Int(rand.Reader, big.NewInt(1000))
+	if err != nil {
+		panic(err)
+	}
+
+	version := fmt.Sprintf("0.0.%d\n", nBig.Int64()) //#nosec G404
 	d1 := []byte(version)
 
 	filename := os.Getenv(configFileName)
-	err := os.WriteFile(filename, d1, 0644) //#nosec G306
+	err = os.WriteFile(filename, d1, 0644) //#nosec G306
 
 	if err != nil {
 		panic(err)
