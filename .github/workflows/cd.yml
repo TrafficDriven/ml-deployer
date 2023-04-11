@@ -31,7 +31,7 @@ on:
       go_version:
         description: 'Go version'
         required: false
-        default: v1.20
+        default: 'stable'
         type: string
       environment:
         description: 'Environment'

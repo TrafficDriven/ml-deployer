@@ -6,11 +6,7 @@ on:
 jobs:
   call-ci:
     uses: TrafficDriven/ml-deployer/.github/workflows/ci.yml@dev
-    with:
-      go_version: v1.20
 
   call-ci-with-setup:
     uses: TrafficDriven/ml-deployer/.github/workflows/ci.yml@dev
     with:
-      go_version: v1.17
-      setup: true

@@ -15,7 +15,6 @@ jobs:
   call-cd:
     uses: TrafficDriven/ml-deployer/.github/workflows/cd.yml@dev
     with:
-      go_version: v1.20
       repository_project_id: tdt-platform
       gke_project_id: tdt-mintlist-${{ github.event.inputs.environment }}
       repository: mintlist
