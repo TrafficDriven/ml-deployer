@@ -6,7 +6,7 @@ on:
       go_version:
         description: 'Go version'
         required: false
-        default: v1.18
+        default: 'stable'
         type: string
       skip_ci:
         description: 'Add Skip CI to comment'
@@ -40,7 +40,7 @@ jobs:
         token: ${{ secrets.token }}
 
     - name: Setup Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v4
       with:
         go-version: ${{ inputs.go_version }}
 
