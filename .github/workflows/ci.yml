@@ -28,6 +28,11 @@ on:
         required: false
         default: true
         type: boolean
+      vulncheck:
+        description: 'Run govulncheck Scanner'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   # Runs continuous integration test
@@ -80,6 +85,12 @@ jobs:
     - if: inputs.gosec == true
       name: Gosec Security Scanner
       uses: securego/gosec@master
+      with:
+        args: ./...
+
+    - if: inputs.vulncheck == true
+      name: Govuln Check Scanner
+      uses: golang/govulncheck-action@v1
       with:
         args: ./...
 
