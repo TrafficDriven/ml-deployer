@@ -1,5 +1,4 @@
 name: CI
-
 on:
   workflow_call:
     inputs:
@@ -28,7 +27,6 @@ on:
         required: false
         default: true
         type: boolean
-
 jobs:
   # Runs continuous integration test
   test:
@@ -36,58 +34,47 @@ jobs:
     env:
       GO111MODULE: on
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
-
-    - if: inputs.setup == true
-      uses: abbbi/github-actions-tune@v1
-
-    - name: Presetup environment
-      if: inputs.setup == true
-      shell: bash
-      run: |-
-        make setup
-
-    - name: Setup Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: ${{ inputs.go_version }}
-        cache: true
-
-    - name: Setup golangci-lint
-      uses: golangci/golangci-lint-action@v3
-      with:
-        version: ${{ inputs.go_lint_version }}
-        args: --timeout 3m
-
-    - name: Setup Node
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ inputs.node_version }}
-
-    - name: Go Format
-      run: |
-        go fmt ./...
-
-    - name: Go Test
-      run: |
-        go test -v ./...
-
-    - name: Other Tests
-      run: |
-        make ci
-
-    - if: inputs.gosec == true
-      name: Gosec Security Scanner
-      uses: securego/gosec@master
-      with:
-        args: ./...
-
-    - name: Set up Helm
-      uses: azure/setup-helm@v3
-      with:
-        version: v3.6.3
-
-    - name: Run helm lint
-      run: |
-        make helm_lint
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - if: inputs.setup == true
+        uses: abbbi/github-actions-tune@v1
+      - name: Presetup environment
+        if: inputs.setup == true
+        shell: bash
+        run: |-
+          make setup
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ inputs.go_version }}
+          cache: true
+      - name: Setup golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: ${{ inputs.go_lint_version }}
+          args: --timeout 3m
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node_version }}
+      - name: Go Format
+        run: |
+          go fmt ./...
+      - name: Go Test
+        run: |
+          go test -v ./...
+      - name: Other Tests
+        run: |
+          make ci
+      - if: inputs.gosec == true
+        name: Gosec Security Scanner
+        uses: securego/gosec@2.16.0
+        with:
+          args: ./...
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.6.3
+      - name: Run helm lint
+        run: |
+          make helm_lint
