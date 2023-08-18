@@ -68,7 +68,7 @@ jobs:
           make ci
       - if: inputs.gosec == true
         name: Gosec Security Scanner
-        uses: securego/gosec@2.16.0
+        uses: securego/gosec@master
         with:
           args: ./...
       - name: Set up Helm
