@@ -82,7 +82,8 @@ jobs:
         name: Govuln Check Scanner
         uses: golang/govulncheck-action@v1
         with:
-          args: ./...
+          go-version-input: ${{ inputs.go_version }}
+          go-package: ./...
 
       - name: Set up Helm
         uses: azure/setup-helm@v3
