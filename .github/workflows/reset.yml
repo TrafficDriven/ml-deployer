@@ -51,7 +51,7 @@ jobs:
     steps:
 
     - name: Checkout Deploy Code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
   
     - name: Setup Go
       uses: actions/setup-go@v4
@@ -88,7 +88,7 @@ jobs:
         project_id: ${{ inputs.repository_project_id }}
 
     - name: Get the GKE credentials so we can deploy to the cluster
-      uses: google-github-actions/get-gke-credentials@v1.0.1
+      uses: google-github-actions/get-gke-credentials@v1.0.2
       with:
         cluster_name: ${{ inputs.gke_cluster }}
         location: ${{ inputs.location }}
