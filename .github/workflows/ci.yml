@@ -27,6 +27,12 @@ on:
         required: false
         default: true
         type: boolean
+      vulncheck:
+        description: 'Run govulncheck Scanner'
+        required: false
+        default: true
+        type: boolean
+
 jobs:
   # Runs continuous integration test
   test:
@@ -71,6 +77,13 @@ jobs:
         uses: securego/gosec@master
         with:
           args: ./...
+
+    - if: inputs.vulncheck == true
+      name: Govuln Check Scanner
+      uses: golang/govulncheck-action@v1
+      with:
+        args: ./...
+
       - name: Set up Helm
         uses: azure/setup-helm@v3
         with:
