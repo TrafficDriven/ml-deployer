@@ -47,6 +47,7 @@ on:
 jobs:
   # Deploy Branch to Kubernetes Cluster
   reset-environment:
+    if: inputs.environment != 'dev'
     runs-on: ubuntu-latest
     steps:
 
