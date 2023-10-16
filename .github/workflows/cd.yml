@@ -218,11 +218,14 @@ jobs:
         pwd
         ls -lart
 
-        if [ ! -d "./destiny-manifest"]; then
+        if [ ! -d "destiny-manifest"]; then
+          echo "directory do NOT exists"
           gh repo clone ${{ github.repository }} destiny-manifest -- --branch main
           cd destiny-manifest
           git switch --orphan ${{ env.ENV }}
           mkdir manifest
+        else
+          echo "directory exists"
         fi
 
         pwd
