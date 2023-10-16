@@ -232,7 +232,7 @@ jobs:
         pwd
         ls -lart
 
-        cd code-source
+        cd ../code-source
         helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} >> ../destiny-manifest/manifest/manifest.yaml
 
         cd ../destiny-manifest
