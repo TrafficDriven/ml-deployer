@@ -188,7 +188,10 @@ jobs:
         #      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
       shell: bash
       run: |-
-        make ${{ inputs.docker_target }}
+        pwd
+        ls -lart
+        cd code-source
+        make GITHUB_SHA_VALUE=${{ github.sha }} ${{ inputs.docker_target }}
 
     - name: Publish the Docker image to Google Container Registry
         #      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
