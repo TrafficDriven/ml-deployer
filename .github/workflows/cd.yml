@@ -217,8 +217,9 @@ jobs:
       run: |-
         pwd
         ls -lart
+        DIR="destiny-manifest"
 
-        if [ ! -d "destiny-manifest"]; then
+        if [ ! -d "$DIR" ]; then
           echo "directory do NOT exists"
           gh repo clone ${{ github.repository }} destiny-manifest -- --branch main
           cd destiny-manifest
