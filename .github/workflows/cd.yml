@@ -171,18 +171,18 @@ jobs:
       run: |
         gcloud auth configure-docker ${{ inputs.location }}-docker.pkg.dev -q
 
-    - name: Check if docker build is required
-      id: needs_docker_build
-      shell: bash
-      run: |-
-        OUTPUT=$(gcloud container images list-tags ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }})
-        if echo "$OUTPUT" | grep -q "${{ env.VERSION }}"; then
-          echo "SHOULD_BUILD=no"  >> $GITHUB_OUTPUT
-          echo "We will not be creating a new docker image"
-        else
-          echo "SHOULD_BUILD=yes" >> $GITHUB_OUTPUT
-          echo "We will be creating a new docker image"
-        fi
+      #    - name: Check if docker build is required
+      #      id: needs_docker_build
+      #      shell: bash
+      #      run: |-
+      #        OUTPUT=$(gcloud container images list-tags ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }})
+      #        if echo "$OUTPUT" | grep -q "${{ env.VERSION }}"; then
+      #          echo "SHOULD_BUILD=no"  >> $GITHUB_OUTPUT
+      #          echo "We will not be creating a new docker image"
+      #        else
+      #          echo "SHOULD_BUILD=yes" >> $GITHUB_OUTPUT
+      #          echo "We will be creating a new docker image"
+      #        fi
 
     - name: Run Docker Build
         #      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
@@ -209,7 +209,7 @@ jobs:
       #        location: ${{ inputs.location }}
       #        project_id: ${{ inputs.gke_project_id }}
 
-    - name: Deploy to Kubernetes Cluster
+    - name: Generating manifest
       if: inputs.deploy == true
       shell: bash
       env:
@@ -218,19 +218,20 @@ jobs:
         pwd
         ls -lart
 
-        [ -d "destiny-manifest" ] && echo "Directory deployment destiny branch exists." || gh repo clone ${{ github.repository }} destiny-manifest -- --branch ${{ env.ENV }}
+        if [ ! -d "./destiny-manifest"]; then
+          gh repo clone ${{ github.repository }} destiny-manifest -- --branch main
+          cd destiny-manifest
+          git switch --orphan ${{ env.ENV }}
+          mkdir manifest
+        fi
 
         pwd
         ls -lart
 
         cd code-source
-        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }}>> ../destiny-manifest/manifest/manifest.yaml
+        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} >> ../destiny-manifest/manifest/manifest.yaml
 
-    - name: Creating build_tags file
-      if: inputs.deploy == true
-      shell: bash
-      run: |-
-        cd destiny-manifest
+        cd ../destiny-manifest
 
         if test -f "build_tags"; then
           source "build-tags"
@@ -245,15 +246,12 @@ jobs:
         export BRANCH="${{ env.ENV }}"
         EOF
 
-    - name: Deploy to Kubernetes Cluster
+    - name: Pushing manifest to ${{ env.ENV }} branch
       if: inputs.deploy == true
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
       run: |-
-        pwd
-        ls -lart
-
         cd destiny-manifest && git push origin ${{ env.ENV }}
 
     - name: Post Slack Notification
