@@ -234,7 +234,7 @@ jobs:
 
         if test -f "build_tags"; then
           source "build-tags"
-          echo "COMMIT_ID_ROLLBACK=${{ COMMIT_ID }}" >> $GITHUB_ENV
+          echo "COMMIT_ID_ROLLBACK=$COMMIT_ID" >> $GITHUB_ENV
         fi
 
         cat <<-EOF > "build-tags"
@@ -254,7 +254,7 @@ jobs:
         pwd
         ls -lart
 
-        cd destiny-manifest && git push origin ${{ eng.ENV }}
+        cd destiny-manifest && git push origin ${{ env.ENV }}
 
     - name: Post Slack Notification
       if: inputs.notification == true
