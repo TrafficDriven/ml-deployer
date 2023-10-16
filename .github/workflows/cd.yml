@@ -251,13 +251,12 @@ jobs:
         EOF
 
         export COMMIT_MESSAGE=$(cat <<EOF
-        deploy image &{{ input.image }}:${IMAGE_TAG}
+        image ${{ inputs.image }}:${IMAGE_TAG}
 
-        Source commit:
         commit ${{ github.sha }}
         EOF
         )
-
+        
         echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
 
     - name: Pushing manifest to ${{ env.ENV }} branch
