@@ -212,10 +212,49 @@ jobs:
     - name: Deploy to Kubernetes Cluster
       if: inputs.deploy == true
       shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |-
         pwd
         ls -lart
-        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ env.VERSION }}>> destiny-manifest/manifest/manifest.yaml
+
+        [ -d "destiny-manifest" ] && echo "Directory deployment destiny branch exists." || gh repo clone ${{ github.repository }} destiny-manifest -- --branch ${{ env.ENV }}
+
+        pwd
+        ls -lart
+
+        cd code-source
+        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }}>> ../destiny-manifest/manifest/manifest.yaml
+
+    - name: Creating build_tags file
+      if: inputs.deploy == true
+      shell: bash
+      run: |-
+        cd destiny-manifest
+
+        if test -f "build_tags"; then
+          source "build-tags"
+          echo "COMMIT_ID_ROLLBACK=${{ COMMIT_ID }}" >> $GITHUB_ENV
+        fi
+
+        cat <<-EOF > "build-tags"
+        export APP_NAME="${{ inputs.image }}"
+        export IMAGE_TAG="${{ github.sha }}"
+        export COMMIT_ID="${{ github.sha }}"
+        export COMMIT_ID_ROLLBACK="${{ env.COMMIT_ID_ROLLBACK }}"
+        export BRANCH="${{ env.ENV }}"
+        EOF
+
+    - name: Deploy to Kubernetes Cluster
+      if: inputs.deploy == true
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |-
+        pwd
+        ls -lart
+
+        cd destiny-manifest && git push origin ${{ eng.ENV }}
 
     - name: Post Slack Notification
       if: inputs.notification == true
