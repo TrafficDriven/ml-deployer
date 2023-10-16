@@ -148,7 +148,6 @@ jobs:
         echo "ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
         echo "NODE_ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
         echo "PROJECT_NAME=$(echo ${{ inputs.image }})" >> $GITHUB_ENV
-        echo "GIT_SHA_SHORT=$(git rev-parse --short \"$GITHUB_SHA\")" >> $GITHUB_ENV
 
       #    - name: Setting Env With Version
       #      id: get_version_name
@@ -195,9 +194,9 @@ jobs:
         #      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
       shell: bash
       run: |-
-        docker tag ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.GITHUB_SHA }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.GITHUB_SHA }}
-        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.GITHUB_SHA }}
-        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.GITHUB_SHA }}
+        docker tag ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }}
+        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }}
+        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }}
 
       #    - name: Get the GKE credentials so we can deploy to the cluster
       #      if: inputs.deploy == true
@@ -213,7 +212,7 @@ jobs:
       run: |-
         pwd
         ls -lart
-        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.GITHUB_SHA }} --set app.version=${{ env.VERSION }}>> destiny-manifest/manifest/manifest.yaml
+        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ env.VERSION }}>> destiny-manifest/manifest/manifest.yaml
 
     - name: Post Slack Notification
       if: inputs.notification == true
