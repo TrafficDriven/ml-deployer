@@ -101,13 +101,20 @@ jobs:
     - if: inputs.deploy == true
       name: Checkout Deploy Code
       uses: actions/checkout@v4
-  
+      with:
+        path: code-source
+      #    - if: inputs.deploy == false
+      #      name: Checkout Code
+      #      uses: actions/checkout@v4
+      #      with:
+      #        ref: ${{ inputs.branch }}
+
     - if: inputs.deploy == false
       name: Checkout Code
       uses: actions/checkout@v4
       with:
         ref: ${{ inputs.branch }}
-
+        path: destiny-manifest
 
     - if: inputs.setup == true
       uses: abbbi/github-actions-tune@v1
@@ -141,13 +148,14 @@ jobs:
         echo "ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
         echo "NODE_ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
         echo "PROJECT_NAME=$(echo ${{ inputs.image }})" >> $GITHUB_ENV
+        echo "GIT_SHA_SHORT=$(git rev-parse --short \"$GITHUB_SHA\")" >> $GITHUB_ENV
 
-    - name: Setting Env With Version
-      id: get_version_name
-      shell: bash
-      run: |-
-        echo "VERSION=v$(make ${{ inputs.version_target }}).$(echo ${GITHUB_SHA::7})"  >> $GITHUB_ENV
-        echo "RAW_VERSION=v$(make ${{ inputs.version_target }})"  >> $GITHUB_ENV
+      #    - name: Setting Env With Version
+      #      id: get_version_name
+      #      shell: bash
+      #      run: |-
+      #        echo "VERSION=v$(make ${{ inputs.version_target }}).$(echo ${GITHUB_SHA::7})"  >> $GITHUB_ENV
+      #        echo "RAW_VERSION=v$(make ${{ inputs.version_target }})"  >> $GITHUB_ENV
 
     - name: Authenticate to Google Cloud
       uses: 'google-github-actions/auth@v1'
@@ -176,35 +184,36 @@ jobs:
           echo "SHOULD_BUILD=yes" >> $GITHUB_OUTPUT
           echo "We will be creating a new docker image"
         fi
-        
 
     - name: Run Docker Build
-      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
+        #      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
       shell: bash
       run: |-
         make ${{ inputs.docker_target }}
 
     - name: Publish the Docker image to Google Container Registry
-      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
+        #      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
       shell: bash
       run: |-
-        docker tag ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
-        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
-        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }}
+        docker tag ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.GITHUB_SHA }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.GITHUB_SHA }}
+        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.GITHUB_SHA }}
+        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.GITHUB_SHA }}
 
-    - name: Get the GKE credentials so we can deploy to the cluster
-      if: inputs.deploy == true
-      uses: google-github-actions/get-gke-credentials@v1.0.2
-      with:
-        cluster_name: ${{ inputs.gke_cluster }}
-        location: ${{ inputs.location }}
-        project_id: ${{ inputs.gke_project_id }}
+      #    - name: Get the GKE credentials so we can deploy to the cluster
+      #      if: inputs.deploy == true
+      #      uses: google-github-actions/get-gke-credentials@v1.0.2
+      #      with:
+      #        cluster_name: ${{ inputs.gke_cluster }}
+      #        location: ${{ inputs.location }}
+      #        project_id: ${{ inputs.gke_project_id }}
 
     - name: Deploy to Kubernetes Cluster
       if: inputs.deploy == true
       shell: bash
       run: |-
-        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.VERSION }} --set app.version=${{ env.VERSION }} | kubectl apply -f -
+        pwd
+        ls -lart
+        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.GITHUB_SHA }} --set app.version=${{ env.VERSION }}>> destiny-manifest/manifest/manifest.yaml
 
     - name: Post Slack Notification
       if: inputs.notification == true
