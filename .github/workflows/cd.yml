@@ -275,8 +275,11 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git add .
         git commit -m "deploy in ${{ env.ENV }}" --no-verify
+
+        git remote remove origin
+        git remote add origin "https://${{ secrets.token }}@github.com/${{ GITHUB_REPOSITORY }}.git"
+
         git push --set-upstream origin ${{ env.ENV }}
-      #git push origin ${{ env.ENV }}
 
     - name: Post Slack Notification
       if: inputs.notification == true
