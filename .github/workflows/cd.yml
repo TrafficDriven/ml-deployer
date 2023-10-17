@@ -107,17 +107,11 @@ jobs:
       with:
         path: code-source
 
-      #    - if: inputs.deploy == false
-      #      name: Checkout Code
-      #      uses: actions/checkout@v4
-      #      with:
-      #        ref: ${{ inputs.branch }}
-
     - if: inputs.deploy == true
       name: Checkout Code
       uses: actions/checkout@v4
       with:
-        ref: ${{ inputs.branch }}
+        ref: ${{ inputs.environment }}
         path: destiny-manifest
         token: ${{ secrets.token }}
 
@@ -239,7 +233,7 @@ jobs:
         ls -lart
 
         cd code-source
-        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} >> ../destiny-manifest/manifest/manifest.yaml
+        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} > ../destiny-manifest/manifest/manifest.yaml
 
         cd ../destiny-manifest
 
