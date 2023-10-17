@@ -223,6 +223,8 @@ jobs:
           gh repo clone ${{ github.repository }} destiny-manifest -- --branch main
           cd destiny-manifest
           git switch --orphan ${{ env.ENV }}
+          git remote remove origin
+          git remote add origin "https://${{ secrets.token }}@github.com/${{ github.repository }}.git"
           mkdir manifest
           cd ..
         else
@@ -270,9 +272,6 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git add .
         git commit -m "deploy in ${{ env.ENV }}" --no-verify
-
-        git remote remove origin
-        git remote add origin "https://${{ secrets.token }}@github.com/${{ github.repository }}.git"
 
         git push --set-upstream origin ${{ env.ENV }}
 
