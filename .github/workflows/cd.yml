@@ -213,7 +213,7 @@ jobs:
       if: inputs.deploy == true
       shell: bash
       env:
-        GH_TOKEN: ${{ secrets.token }}
+        GH_TOKEN: ${{ secrets.PUSH_TOKEN }}
       run: |-
         pwd
         ls -lart
@@ -263,7 +263,7 @@ jobs:
       if: inputs.deploy == true
       shell: bash
       env:
-        GH_TOKEN: ${{ secrets.token }}
+        GH_TOKEN: ${{ secrets.PUSH_TOKEN }}
       run: |-
         cd destiny-manifest
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
