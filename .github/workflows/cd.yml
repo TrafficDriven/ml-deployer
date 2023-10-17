@@ -250,14 +250,14 @@ jobs:
         export BRANCH="${{ env.ENV }}"
         EOF
 
-      #        export COMMIT_MESSAGE=$(cat <<EOF
-      #        image ${{ inputs.image }}:${IMAGE_TAG}
-      #
-      #        commit ${{ github.sha }}
-      #        EOF
-      #        )
-      #        
-      #        echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
+        export COMMIT_MESSAGE=$(cat <<EOF
+        image ${{ inputs.image }}:${IMAGE_TAG}
+      
+        commit ${{ github.sha }}
+        EOF
+        )
+        
+        echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
 
     - name: Pushing manifest to ${{ env.ENV }} branch
       if: inputs.deploy == true
@@ -266,8 +266,10 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       run: |-
         cd destiny-manifest
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
         git add .
-        git commit -m "deploy in ${{ env.ENV }}"
+        git commit -m "deploy in ${{ env.COMMIT_MESSAGE }}" --no-verify
         git push origin ${{ env.ENV }}
 
     - name: Post Slack Notification
