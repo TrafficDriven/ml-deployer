@@ -119,7 +119,7 @@ jobs:
       with:
         ref: ${{ inputs.branch }}
         path: destiny-manifest
-        token: ${{ secrets.PUSH_TOKEN }}
+        token: ${{ secrets.token }}
 
     - if: inputs.setup == true
       uses: abbbi/github-actions-tune@v1
