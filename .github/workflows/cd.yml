@@ -275,7 +275,7 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git add .
         git commit -m "deploy in ${{ env.ENV }}" --no-verify
-        git push 
+        git push --set-upstream origin ${{ env.ENV }}
       #git push origin ${{ env.ENV }}
 
     - name: Post Slack Notification
