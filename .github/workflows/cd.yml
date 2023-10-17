@@ -113,7 +113,7 @@ jobs:
       #      with:
       #        ref: ${{ inputs.branch }}
 
-    - if: inputs.deploy == false
+    - if: inputs.deploy == true
       name: Checkout Code
       uses: actions/checkout@v4
       with:
