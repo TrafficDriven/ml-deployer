@@ -203,7 +203,10 @@ jobs:
         cd ../destiny-manifest
 
         if test -f "build_tags"; then
+          echo "===== sourcing build-tags"
           source "build-tags"
+        else
+          echo "==== not sourcing build-tags"
         fi
 
         cat <<-EOF > "build-tags"
