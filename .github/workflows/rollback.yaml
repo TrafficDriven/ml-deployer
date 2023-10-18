@@ -1,0 +1,79 @@
+name: Rollback
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        default: dev
+        type: string
+    secrets:
+      token:
+        description: 'Push Token'
+        required: true
+jobs:
+  # Deploy Branch to Kubernetes Cluster
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.environment }}
+        path: destiny-manifest
+        token: ${{ secrets.token }}
+
+    - name: Preparing to rollback
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.token }}
+      run: |-
+        DIR="destiny-manifest"
+
+        if [ ! -d "$DIR" ]; then
+          echo "no ${{ env.ENV }} branch found. Can't rollback"
+          exit 1
+        fi
+
+        cd destiny-manifest
+        source "build-tags"
+        echo "COMMIT_ID_ROLLBACK=$(echo $COMMIT_ID_ROLLBACK)" >> $GITHUB_ENV
+
+        if [[ -z "${COMMIT_ID_ROLLBACK}" ]]; then
+          echo "no COMMIT_ID_ROLLBACK found. Can't rollback"
+          exit 1
+        fi
+
+        cat <<-EOF > "build-tags"
+        export APP_NAME="$APP_NAME"
+        export IMAGE_TAG="$IMAGE_TAG"
+        export COMMIT_ID_ROLLBACK=""
+        export COMMIT_ID="$COMMIT_IT_ROLLBACK"
+        export BRANCH="${{ github.ref_name }}"
+        EOF
+
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ env.COMMIT_ID_ROLLBACK }}
+        path: code-source
+        token: ${{ secrets.token }}
+
+    - name: Helming the rollback commit_id code
+      shell: bash
+      run: |-
+        cd code-source
+        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_ROLLBACK }} --set app.version=${{ env.COMMIT_ID_ROLLBACK }} > ../destiny-manifest/manifest/manifest.yaml
+
+    - name: Pushing manifest to ${{ env.ENV }} branch
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.token }}
+      run: |-
+        cd destiny-manifest
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add .
+        git commit -m "rolling back in ${{ env.ENV }}" --no-verify
+        git push --set-upstream origin ${{ env.ENV }}
