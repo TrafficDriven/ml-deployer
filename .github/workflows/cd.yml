@@ -177,7 +177,7 @@ jobs:
         docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }}
 
     - name: Generating manifest
-      if: inputs.deploy == true
+        #     if: inputs.deploy == true
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.token }}
@@ -202,8 +202,10 @@ jobs:
 
         cd ../destiny-manifest
 
+        ls -lart
+
         FILE_BUILD_TAGS="build-tags"
-        if [ -f "$FILE_BUILD_TAGS"]; then
+        if [ -f "$FILE_BUILD_TAGS" ]; then
           echo "===== sourcing build-tags"
           source "build-tags"
         else
