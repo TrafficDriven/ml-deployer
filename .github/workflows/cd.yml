@@ -115,14 +115,14 @@ jobs:
         path: destiny-manifest
         token: ${{ secrets.token }}
 
-    - if: inputs.setup == true
-      uses: abbbi/github-actions-tune@v1
+      #    - if: inputs.setup == true
+      #      uses: abbbi/github-actions-tune@v1
 
-    - name: GHA Environment setup
-      if: inputs.setup == true
-      shell: bash
-      run: |-
-        make setup
+      #    - name: GHA Environment setup
+      #      if: inputs.setup == true
+      #      shell: bash
+      #      run: |-
+      #        make setup
 
     - name: Setup Go
       uses: actions/setup-go@v4
@@ -148,13 +148,6 @@ jobs:
         echo "NODE_ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
         echo "PROJECT_NAME=$(echo ${{ inputs.image }})" >> $GITHUB_ENV
 
-      #    - name: Setting Env With Version
-      #      id: get_version_name
-      #      shell: bash
-      #      run: |-
-      #        echo "VERSION=v$(make ${{ inputs.version_target }}).$(echo ${GITHUB_SHA::7})"  >> $GITHUB_ENV
-      #        echo "RAW_VERSION=v$(make ${{ inputs.version_target }})"  >> $GITHUB_ENV
-
     - name: Authenticate to Google Cloud
       uses: 'google-github-actions/auth@v1'
       with:
@@ -170,43 +163,18 @@ jobs:
       run: |
         gcloud auth configure-docker ${{ inputs.location }}-docker.pkg.dev -q
 
-      #    - name: Check if docker build is required
-      #      id: needs_docker_build
-      #      shell: bash
-      #      run: |-
-      #        OUTPUT=$(gcloud container images list-tags ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }})
-      #        if echo "$OUTPUT" | grep -q "${{ env.VERSION }}"; then
-      #          echo "SHOULD_BUILD=no"  >> $GITHUB_OUTPUT
-      #          echo "We will not be creating a new docker image"
-      #        else
-      #          echo "SHOULD_BUILD=yes" >> $GITHUB_OUTPUT
-      #          echo "We will be creating a new docker image"
-      #        fi
-
     - name: Run Docker Build
-        #      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
       shell: bash
       run: |-
-        pwd
-        ls -lart
         cd code-source
         make GITHUB_SHA_VALUE=${{ github.sha }} ${{ inputs.docker_target }}
 
     - name: Publish the Docker image to Google Container Registry
-        #      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
       shell: bash
       run: |-
         docker tag ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }}
         docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }}
         docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }}
-
-      #    - name: Get the GKE credentials so we can deploy to the cluster
-      #      if: inputs.deploy == true
-      #      uses: google-github-actions/get-gke-credentials@v1.0.2
-      #      with:
-      #        cluster_name: ${{ inputs.gke_cluster }}
-      #        location: ${{ inputs.location }}
-      #        project_id: ${{ inputs.gke_project_id }}
 
     - name: Generating manifest
       if: inputs.deploy == true
@@ -214,8 +182,6 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.token }}
       run: |-
-        pwd
-        ls -lart
         DIR="destiny-manifest"
 
         if [ ! -d "$DIR" ]; then
@@ -231,9 +197,6 @@ jobs:
           echo "directory exists"
         fi
 
-        pwd
-        ls -lart
-
         cd code-source
         helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} > ../destiny-manifest/manifest/manifest.yaml
 
@@ -241,14 +204,13 @@ jobs:
 
         if test -f "build_tags"; then
           source "build-tags"
-          echo "COMMIT_ID_ROLLBACK=$COMMIT_ID" >> $GITHUB_ENV
         fi
 
         cat <<-EOF > "build-tags"
         export APP_NAME="${{ inputs.image }}"
         export IMAGE_TAG="${{ github.sha }}"
+        export COMMIT_ID_ROLLBACK="$COMMIT_ID"
         export COMMIT_ID="${{ github.sha }}"
-        export COMMIT_ID_ROLLBACK="${{ env.COMMIT_ID_ROLLBACK }}"
         export BRANCH="${{ env.ENV }}"
         EOF
 
@@ -272,7 +234,6 @@ jobs:
         git config --local user.name "github-actions[bot]"
         git add .
         git commit -m "deploy in ${{ env.ENV }}" --no-verify
-
         git push --set-upstream origin ${{ env.ENV }}
 
     - name: Post Slack Notification
