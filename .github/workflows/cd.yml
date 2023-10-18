@@ -202,14 +202,12 @@ jobs:
 
         cd ../destiny-manifest
 
-        ls -lart
-
         FILE_BUILD_TAGS="build-tags"
         if [ -f "$FILE_BUILD_TAGS" ]; then
           echo "===== sourcing build-tags"
           source "build-tags"
         else
-          echo "==== not sourcing build-tags"
+          echo "===== not sourcing build-tags"
         fi
 
         cat <<-EOF > "build-tags"
@@ -217,7 +215,7 @@ jobs:
         export IMAGE_TAG="${{ github.sha }}"
         export COMMIT_ID_ROLLBACK="$COMMIT_ID"
         export COMMIT_ID="${{ github.sha }}"
-        export BRANCH="${{ env.ENV }}"
+        export BRANCH="${{ github.ref_name }}"
         EOF
 
       #        export COMMIT_MESSAGE=$(cat <<EOF
@@ -230,7 +228,6 @@ jobs:
       #        echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
 
     - name: Pushing manifest to ${{ env.ENV }} branch
-      if: inputs.deploy == true
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.token }}
