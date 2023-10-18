@@ -202,7 +202,8 @@ jobs:
 
         cd ../destiny-manifest
 
-        if test -f "build_tags"; then
+        FILE_BUILD_TAGS="build-tags"
+        if [ -f "$FILE_BUILD_TAGS"]; then
           echo "===== sourcing build-tags"
           source "build-tags"
         else
