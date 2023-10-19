@@ -73,7 +73,7 @@ jobs:
         else
           cd destiny-manifest-to
           source "build-tags"
-          export COMMIT_ID_ROLLBACK_ENV_TO=echo $COMMIT_ID
+          export COMMIT_ID_ROLLBACK_ENV_TO=$COMMIT_ID
         fi
 
         cd ../destiny-manifest-from
