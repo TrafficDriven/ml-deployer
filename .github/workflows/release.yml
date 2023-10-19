@@ -74,6 +74,8 @@ jobs:
           cd destiny-manifest-to
           source "build-tags"
           echo "COMMIT_ID_ROLLBACK=$(echo $COMMIT_ID)" >> $GITHUB_ENV
+          echo "============ $COMMIT_ID"
+          echo "============ ${{ env.COMMIT_ID_ROLLBACK }}"
         fi
 
         cd ../destiny-manifest-from
