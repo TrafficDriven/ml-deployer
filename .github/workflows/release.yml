@@ -23,6 +23,12 @@ on:
       token:
         description: 'Push Token'
         required: true
+      slack_channel_id:
+        description: 'Slack Channel ID.'
+        required: false
+      slack_bot_token:
+        description: 'Slack Token'
+        required: true
 jobs:
   # Deploy Branch to Kubernetes Cluster
   release:
