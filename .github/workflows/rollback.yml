@@ -8,6 +8,11 @@ on:
         required: false
         default: dev
         type: string
+      helm_chart_file:
+        description: 'Helm Chart'
+        required: false
+        default: 'deployments/kubernetes/helm/chart'
+        type: string
     secrets:
       token:
         description: 'Push Token'
