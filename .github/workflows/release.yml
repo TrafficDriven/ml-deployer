@@ -49,6 +49,8 @@ jobs:
 
     - name: Preparing to release to ${{ inputs.environmentTo }}
       if: always()
+      env:
+        GH_TOKEN: ${{ secrets.token }}
       shell: bash
       run: |-
         DIR="destiny-manifest-from"
