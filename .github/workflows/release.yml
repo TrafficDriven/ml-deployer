@@ -1,0 +1,96 @@
+
+name: Release
+
+on:
+  workflow_call:
+    inputs:
+      environmentFrom:
+        description: 'Environment From'
+        required: true
+        default: stage
+        type: string
+      environmentTo:
+        description: 'Environment To'
+        required: true
+        default: production
+        type: string
+      helm_chart_file:
+        description: 'Helm Chart'
+        required: false
+        default: 'deployments/kubernetes/helm/chart'
+        type: string
+    secrets:
+      token:
+        description: 'Push Token'
+        required: true
+jobs:
+  # Deploy Branch to Kubernetes Cluster
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.environmentFrom }}
+        path: destiny-manifest-from
+        token: ${{ secrets.token }}
+
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.environmentTo }}
+        path: destiny-manifest-to
+        token: ${{ secrets.token }}
+
+    - name: Preparing to release to ${{ inputs.environmentTo }}
+      shell: bash
+      run: |-
+        DIR="destiny-manifest-from"
+
+        if [ ! -d "$DIR" ]; then
+          echo "no ${{ inputs.environmentFrom }} branch found. Can't release"
+          exit 1
+        fi
+
+        cd destiny-manifest-from
+        source "build-tags"
+        echo "COMMIT_ID=$(echo $COMMIT_ID)" >> $GITHUB_ENV
+
+        if [[ -z "${COMMIT_ID}" ]]; then
+          echo "no COMMIT_ID found. Can't release"
+          exit 1
+        fi
+
+        cd ../destiny-manifest-to
+        cat <<-EOF > "build-tags"
+        export APP_NAME="$APP_NAME"
+        export IMAGE_TAG="$COMMIT_ID"
+        export COMMIT_ID_ROLLBACK=""
+        export COMMIT_ID="$COMMIT_ID"
+        export BRANCH="$BRANCH"
+        EOF
+
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ env.COMMIT_ID }}
+        path: code-source
+        token: ${{ secrets.token }}
+
+    - name: Helming the release commit_id code
+      shell: bash
+      run: |-
+        cd code-source
+        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environmentTo }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID }} --set app.version=${{ env.COMMIT_ID }} > ../destiny-manifest-to/manifest/manifest.yaml
+
+    - name: Pushing manifest to ${{ inputs.environmentTo }} branch
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.token }}
+      run: |-
+        cd destiny-manifest-to
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add .
+        git commit -m "rolling back in ${{ inputs.environmentTo }}" --no-verify
+        git push --set-upstream origin ${{ inputs.environmentTo }}
