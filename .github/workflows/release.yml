@@ -73,9 +73,7 @@ jobs:
         else
           cd destiny-manifest-to
           source "build-tags"
-          echo "COMMIT_ID_ROLLBACK=$(echo $COMMIT_ID)" >> $GITHUB_ENV
-          echo "============ $COMMIT_ID"
-          echo "============ ${{ env.COMMIT_ID_ROLLBACK }}"
+          export COMMIT_ID_ROLLBACK_ENV_TO=echo $COMMIT_ID
         fi
 
         cd ../destiny-manifest-from
@@ -91,7 +89,7 @@ jobs:
         cat <<-EOF > "build-tags"
         export APP_NAME="$APP_NAME"
         export IMAGE_TAG="$COMMIT_ID"
-        export COMMIT_ID_ROLLBACK="${{ env.COMMIT_ID_ROLLBACK }}"
+        export COMMIT_ID_ROLLBACK="$COMMIT_ID_ROLLBACK_ENV_TO"
         export COMMIT_ID="$COMMIT_ID"
         export BRANCH="$BRANCH"
         EOF
