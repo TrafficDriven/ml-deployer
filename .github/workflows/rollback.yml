@@ -37,7 +37,7 @@ jobs:
         DIR="destiny-manifest"
 
         if [ ! -d "$DIR" ]; then
-          echo "no ${{ env.ENV }} branch found. Can't rollback"
+          echo "no ${{ inputs.environment }} branch found. Can't rollback"
           exit 1
         fi
 
@@ -69,9 +69,9 @@ jobs:
       shell: bash
       run: |-
         cd code-source
-        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_ROLLBACK }} --set app.version=${{ env.COMMIT_ID_ROLLBACK }} > ../destiny-manifest/manifest/manifest.yaml
+        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environment }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_ROLLBACK }} --set app.version=${{ env.COMMIT_ID_ROLLBACK }} > ../destiny-manifest/manifest/manifest.yaml
 
-    - name: Pushing manifest to ${{ env.ENV }} branch
+    - name: Pushing manifest to ${{ inputs.environment }} branch
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.token }}
@@ -80,5 +80,5 @@ jobs:
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add .
-        git commit -m "rolling back in ${{ env.ENV }}" --no-verify
-        git push --set-upstream origin ${{ env.ENV }}
+        git commit -m "rolling back in ${{ inputs.environment }}" --no-verify
+        git push --set-upstream origin ${{ inputs.environment }}
