@@ -52,10 +52,10 @@ jobs:
 
         cat <<-EOF > "build-tags"
         export APP_NAME="$APP_NAME"
-        export IMAGE_TAG="$IMAGE_TAG"
+        export IMAGE_TAG="$COMMIT_ID_ROLLBACK"
         export COMMIT_ID_ROLLBACK=""
-        export COMMIT_ID="$COMMIT_IT_ROLLBACK"
-        export BRANCH="${{ github.ref_name }}"
+        export COMMIT_ID="$COMMIT_ID_ROLLBACK"
+        export BRANCH="rollback"
         EOF
 
     - name: Checkout Code
