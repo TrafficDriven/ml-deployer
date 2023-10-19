@@ -52,7 +52,7 @@ jobs:
       shell: bash
       run: |-
         DIR="destiny-manifest-from"
-        DIR_TO="destiny-manifest-to"
+        DIR_TO="destiny-manifest-to/manifest"
 
         if [ ! -d "$DIR" ]; then
           echo "no ${{ inputs.environmentFrom }} branch found. Can't release"
