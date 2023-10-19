@@ -48,7 +48,7 @@ jobs:
         token: ${{ secrets.token }}
 
     - name: Preparing to release to ${{ inputs.environmentTo }}
-      if: always()
+      if: success() || failure()
       env:
         GH_TOKEN: ${{ secrets.token }}
       shell: bash
@@ -95,6 +95,7 @@ jobs:
         EOF
 
     - name: Checkout Code
+      if: success() || failure()
       uses: actions/checkout@v4
       with:
         ref: ${{ env.COMMIT_ID }}
@@ -102,12 +103,14 @@ jobs:
         token: ${{ secrets.token }}
 
     - name: Helming the release commit_id code
+      if: success() || failure()
       shell: bash
       run: |-
         cd code-source
         helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environmentTo }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID }} --set app.version=${{ env.COMMIT_ID }} > ../destiny-manifest-to/manifest/manifest.yaml
 
     - name: Pushing manifest to ${{ inputs.environmentTo }} branch
+      if: success() || failure()
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.token }}
