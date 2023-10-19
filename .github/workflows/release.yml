@@ -63,6 +63,7 @@ jobs:
 
         if [ ! -d "$DIR_TO" ]; then
           echo "directory do NOT exists"
+          rm -rf destiny-manifest-to
           gh repo clone ${{ github.repository }} destiny-manifest-to -- --branch main
           cd destiny-manifest-to
           git switch --orphan ${{ inputs.environmentTo }}
