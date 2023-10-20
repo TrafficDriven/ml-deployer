@@ -68,7 +68,7 @@ jobs:
       shell: bash
       run: |-
         cd code-source
-        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environment }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_PRODUCTION }} --set app.version=${{ env.COMMIT_ID_PRODUCTION }} > ../destiny-manifest/manifest/manifest.yaml
+        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environment }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_PRODUCTION }} --set app.version=${{ env.COMMIT_ID_PRODUCTION }} > ../destiny-manifest-stage/manifest/manifest.yaml
 
     - name: Pushing manifest to ${{ inputs.environment }} branch
       shell: bash
