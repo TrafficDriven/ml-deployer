@@ -47,7 +47,7 @@ jobs:
         source "build-tags"
         echo "COMMIT_ID_PRODUCTION=$(echo $COMMIT_ID)" >> $GITHUB_ENV
 
-        cd ../destiny-manifest-staging
+        cd ../destiny-manifest-stage
 
         cat <<-EOF > "build-tags"
         export APP_NAME="$APP_NAME"
@@ -75,7 +75,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.token }}
       run: |-
-        cd destiny-manifest-staging
+        cd destiny-manifest-stage
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add .
