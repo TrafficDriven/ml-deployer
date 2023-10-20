@@ -51,9 +51,9 @@ jobs:
 
         cat <<-EOF > "build-tags"
         export APP_NAME="$APP_NAME"
-        export IMAGE_TAG="$COMMIT_ID_PRODUCTION"
+        export IMAGE_TAG="$COMMIT_ID"
         export COMMIT_ID_ROLLBACK=""
-        export COMMIT_ID="$COMMIT_ID_PRODUCTION"
+        export COMMIT_ID="$COMMIT_ID"
         export BRANCH="reset"
         EOF
 
