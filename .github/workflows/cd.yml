@@ -216,6 +216,7 @@ jobs:
         export COMMIT_ID_ROLLBACK="$COMMIT_ID"
         export COMMIT_ID="${{ github.sha }}"
         export BRANCH="${{ github.ref_name }}"
+        export ACTION="deploy"
         EOF
 
       #        export COMMIT_MESSAGE=$(cat <<EOF

@@ -54,7 +54,8 @@ jobs:
         export IMAGE_TAG="$COMMIT_ID"
         export COMMIT_ID_ROLLBACK=""
         export COMMIT_ID="$COMMIT_ID"
-        export BRANCH="reset"
+        export BRANCH="$BRANCH"
+        export ACTION="reset"
         EOF
 
     - name: Checkout Code

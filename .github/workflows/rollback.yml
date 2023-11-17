@@ -55,7 +55,8 @@ jobs:
         export IMAGE_TAG="$COMMIT_ID_ROLLBACK"
         export COMMIT_ID_ROLLBACK=""
         export COMMIT_ID="$COMMIT_ID_ROLLBACK"
-        export BRANCH="rollback"
+        export BRANCH="$BRANCH"
+        export ACTION="rollback"
         EOF
 
     - name: Checkout Code

@@ -92,6 +92,7 @@ jobs:
         export COMMIT_ID_ROLLBACK="$COMMIT_ID_ROLLBACK_ENV_TO"
         export COMMIT_ID="$COMMIT_ID"
         export BRANCH="$BRANCH"
+        export ACTION="release"
         EOF
 
     - name: Checkout Code
