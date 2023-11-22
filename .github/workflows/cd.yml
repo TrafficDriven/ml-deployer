@@ -183,7 +183,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.token }}
       run: |-
-        DIR="destiny-manifest"
+        DIR="destiny-manifest/manifest"
 
         if [ ! -d "$DIR" ]; then
           echo "directory do NOT exists"
