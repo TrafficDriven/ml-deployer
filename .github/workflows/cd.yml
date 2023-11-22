@@ -114,6 +114,7 @@ jobs:
         ref: ${{ inputs.environment }}
         path: destiny-manifest
         token: ${{ secrets.token }}
+      continue-on-error: true
 
       #    - if: inputs.setup == true
       #      uses: abbbi/github-actions-tune@v1
