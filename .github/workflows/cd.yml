@@ -183,7 +183,7 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.token }}
       run: |-
-        DIR="destiny-manifest/manifest"
+        DIR="destiny-manifest"
 
         if [ ! -d "$DIR" ]; then
           echo "directory do NOT exists"
@@ -196,6 +196,18 @@ jobs:
           cd ..
         else
           echo "directory exists"
+
+          DIR="destiny-manifest/manifest"
+          if [ ! -d "$DIR" ]; then
+            echo "manifest/ does NOT exists"
+            gh repo clone ${{ github.repository }} destiny-manifest -- --branch main
+            cd destiny-manifest
+            git switch --orphan ${{ env.ENV }}
+            git remote remove origin
+            git remote add origin "https://${{ secrets.token }}@github.com/${{ github.repository }}.git"
+            mkdir manifest
+            cd ..
+          fi
         fi
 
         cd code-source
