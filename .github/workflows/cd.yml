@@ -200,6 +200,7 @@ jobs:
           DIR="destiny-manifest/manifest"
           if [ ! -d "$DIR" ]; then
             echo "manifest/ does NOT exists"
+            rm -rf destiny-manifest/
             gh repo clone ${{ github.repository }} destiny-manifest -- --branch main
             cd destiny-manifest
             git switch --orphan ${{ env.ENV }}
