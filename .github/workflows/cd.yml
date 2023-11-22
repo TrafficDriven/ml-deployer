@@ -71,7 +71,7 @@ on:
       docker_target:
         description: 'The makefile target for building the application docker image'
         required: false
-        default: docker-image
+        default: docker-image-pipeline
         type: string
       application_name:
         description: 'The application deployed. Required in mono repository'
