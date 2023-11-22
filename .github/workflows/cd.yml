@@ -7,14 +7,6 @@ on:
         description: 'GAR Project ID'
         required: false
         type: string
-      gke_project_id:
-        description: 'GKE Project ID'
-        required: false
-        type: string
-      gke_cluster:
-        description: 'Cluster name'
-        required: false
-        type: string
       location:
         description: 'The location of the GAR'
         required: false
@@ -43,11 +35,6 @@ on:
         required: false
         default: 'deployments/kubernetes/helm/chart'
         type: string
-      deploy:
-        description: 'Deploy to Cluster'
-        required: false
-        default: false
-        type: boolean
       branch:
         description: 'The branch to checkout if deploy is set to false (the default)'
         required: false
@@ -58,16 +45,6 @@ on:
         required: false
         default: true
         type: boolean
-      setup:
-        description: 'Run setup makefile'
-        required: false
-        default: false
-        type: boolean
-      version_target:
-        description: 'The makefile target for getting the application version'
-        required: false
-        default: version
-        type: string
       docker_target:
         description: 'The makefile target for building the application docker image'
         required: false
@@ -101,29 +78,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - if: inputs.deploy == true
-      name: Checkout Deploy Code
+    - name: Checkout Deploy Code
       uses: actions/checkout@v4
       with:
         path: code-source
 
-    - if: inputs.deploy == true
-      name: Checkout Code
+    - name: Checkout Code
       uses: actions/checkout@v4
       with:
         ref: ${{ inputs.environment }}
         path: destiny-manifest
         token: ${{ secrets.token }}
       continue-on-error: true
-
-      #    - if: inputs.setup == true
-      #      uses: abbbi/github-actions-tune@v1
-
-      #    - name: GHA Environment setup
-      #      if: inputs.setup == true
-      #      shell: bash
-      #      run: |-
-      #        make setup
 
     - name: Setup Go
       uses: actions/setup-go@v4
@@ -178,7 +144,6 @@ jobs:
         docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }}
 
     - name: Generating manifest
-        #     if: inputs.deploy == true
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.token }}
