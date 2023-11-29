@@ -105,7 +105,8 @@ jobs:
     - name: Echo Input Information
       shell: bash
       run: |-
-        echo "You are deploying ${{ secrets.slack_bot_token }} from the ${GITHUB_REF##*/} branch to the ${{ inputs.environment }} environment" 
+        TEST_TEST=${{ secrets.slack_bot_token }}
+        echo "You are deploying $TEST_TEST from the ${GITHUB_REF##*/} branch to the ${{ inputs.environment }} environment" 
     
     - name: Setting branch name
       shell: bash
