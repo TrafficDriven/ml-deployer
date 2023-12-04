@@ -141,7 +141,7 @@ jobs:
       shell: bash
       run: |-
         cd code-source
-        make ENV=${{ env.ENV }} NODE_ENV=${{ env.ENV }} GITHUB_SHA_VALUE=${{ github.sha }} ${{ inputs.docker_target }}$APP_DOCKER_TARGET
+        make ENV=${{ env.ENV }} NODE_ENV=${{ env.ENV }} GITHUB_SHA_VALUE=${{ github.sha }} ${{ env.APP_DOCKER_TARGET }}
 
     - name: Publish the Docker image to Google Container Registry
       shell: bash
