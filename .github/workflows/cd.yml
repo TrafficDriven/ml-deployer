@@ -155,45 +155,12 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.token }}
       run: |-
-        #if [ ! -d "$DIR" ]; then
-        #  echo "directory do NOT exists"
-        #  gh repo clone ${{ github.repository }} destiny-manifest -- --branch main
-        #  cd destiny-manifest
-        #  git switch --orphan ${{ env.ENV }}
-        #  git remote remove origin
-        #  git remote add origin "https://${{ secrets.token }}@github.com/${{ github.repository }}.git"
-        #  mkdir manifest
-        #  cd ..
-        #else
-        #  echo "directory exists"
-
-        #  DIR="destiny-manifest/manifest"
-        #  if [ ! -d "$DIR" ]; then
-        #    echo "manifest/ does NOT exists"
-        #    rm -rf destiny-manifest/
-        #    gh repo clone ${{ github.repository }} destiny-manifest -- --branch main
-        #    cd destiny-manifest
-        #    git switch --orphan ${{ env.ENV }}
-        #    git remote remove origin
-        #    git remote add origin "https://${{ secrets.token }}@github.com/${{ github.repository }}.git"
-        #    mkdir manifest
-        #    cd ..
-        #  fi
-        #fi
         DIR="destiny-manifest/${APP_FOLDER_NAME}manifest"
         cd code-source
         helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} > "../destiny-manifest/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
 
         cd ../destiny-manifest
         source "${{ env.APP_FOLDER_NAME }}build-tags"
-
-        #FILE_BUILD_TAGS="${APP_FOLDER_NAME}build-tags"
-        #if [ -f "$FILE_BUILD_TAGS" ]; then
-        #  echo "===== sourcing build-tags"
-        #    source "${FILE_BUILD_TAGS}"
-        #  else
-        #    echo "===== not sourcing build-tags"
-        #fi
 
         cat <<-EOF > "${{ env.APP_FOLDER_NAME }}build-tags"
         export APP_NAME="${{ env.APP_NAME }}"

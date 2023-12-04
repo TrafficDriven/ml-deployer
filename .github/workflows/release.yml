@@ -87,20 +87,6 @@ jobs:
         cd destiny-manifest-to
         source "${APP_FOLDER_NAME}build-tags"
         export COMMIT_ID_ROLLBACK_ENV_TO=$COMMIT_ID
-        #if [ ! -d "$DIR_TO" ]; then
-        #  echo "directory do NOT exists"
-        #  rm -rf destiny-manifest-to
-        #  gh repo clone ${{ github.repository }} destiny-manifest-to -- --branch main
-        #  cd destiny-manifest-to
-        #  git switch --orphan ${{ inputs.environmentTo }}
-        #  git remote remove origin
-        #  git remote add origin "https://${{ secrets.token }}@github.com/${{ github.repository }}.git"
-        #  mkdir manifest
-        #else
-        #  cd destiny-manifest-to
-        #  source "build-tags"
-        #  export COMMIT_ID_ROLLBACK_ENV_TO=$COMMIT_ID
-        #fi
 
         cd ../destiny-manifest-from
         source "${APP_FOLDER_NAME}build-tags"
