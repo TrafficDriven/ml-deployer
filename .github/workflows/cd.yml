@@ -107,16 +107,13 @@ jobs:
         export APP_FOLDER_NAME=${{ inputs.monorepo_application_folder }}
         export APP_REPO_NAME=${{github.repository}}
         export APP_REPO_NAME="${APP_REPO_NAME/TrafficDriven\//}"
-        export APP_DOCKER_TARGET=${{ inputs.docker_target }}
         if [ ! -z "$APP_NAME" ]
         then
           export APP_REPO_NAME="${APP_NAME}"
-          export APP_DOCKER_TARGET="${{ inputs.docker_target }}-apps-${APP_NAME}"
         fi
 
         echo "APP_REPO_NAME=$(echo ${APP_REPO_NAME})" >> $GITHUB_ENV
         echo "APP_FOLDER_NAME=$(echo ${APP_FOLDER_NAME})" >> $GITHUB_ENV
-        echo "APP_DOCKER_TARGET=$(echo ${APP_DOCKER_TARGET})" >> $GITHUB_ENV
         echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
         echo "ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
 
@@ -139,7 +136,7 @@ jobs:
       shell: bash
       run: |-
         cd code-source
-        make ENV=${{ env.ENV }} NODE_ENV=${{ env.ENV }} GITHUB_SHA_VALUE=${{ github.sha }} ${{ env.APP_DOCKER_TARGET }}
+        make ENV=${{ env.ENV }} NODE_ENV=${{ env.ENV }} GITHUB_SHA_VALUE=${{ github.sha }} ${{ env.docker_target }}
 
     - name: Publish the Docker image to Google Container Registry
       shell: bash
