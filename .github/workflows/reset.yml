@@ -28,7 +28,6 @@ on:
       slack_channel_id:
         description: 'Slack Channel ID.'
         required: false
-        default: "dev-deployments"
 
 jobs:
   # Deploy Branch to Kubernetes Cluster

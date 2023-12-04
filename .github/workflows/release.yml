@@ -38,7 +38,6 @@ on:
       slack_bot_token:
         description: 'Slack Token'
         required: false
-        default: "deployments"
 
 jobs:
   # Deploy Branch to Kubernetes Cluster
