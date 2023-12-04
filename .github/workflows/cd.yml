@@ -1,4 +1,4 @@
-name: CD
+name: Deploy
 
 on:
   workflow_call:
@@ -7,14 +7,7 @@ on:
         description: 'GAR Project ID'
         required: false
         type: string
-      gke_project_id:
-        description: 'GKE Project ID'
-        required: false
-        type: string
-      gke_cluster:
-        description: 'Cluster name'
-        required: false
-        type: string
+        default: 'tdt-platform'
       location:
         description: 'The location of the GAR'
         required: false
@@ -24,10 +17,7 @@ on:
         description: 'Image Repository'
         required: false
         type: string
-      image:
-        description: 'Image to be pushed'
-        required: false
-        type: string
+        default: 'mintlist'
       go_version:
         description: 'Go version'
         required: false
@@ -36,47 +26,37 @@ on:
       environment:
         description: 'Environment'
         required: false
-        default: dev
+        default: stage
         type: string
       helm_chart_file:
         description: 'Helm Chart'
         required: false
         default: 'deployments/kubernetes/helm/chart'
         type: string
-      deploy:
-        description: 'Deploy to Cluster'
-        required: false
-        default: false
-        type: boolean
-      branch:
-        description: 'The branch to checkout if deploy is set to false (the default)'
-        required: false
-        default: main
-        type: string
       notification:
         description: 'Send slack notification'
         required: false
         default: true
         type: boolean
-      setup:
-        description: 'Run setup makefile'
-        required: false
-        default: false
-        type: boolean
-      version_target:
-        description: 'The makefile target for getting the application version'
-        required: false
-        default: version
-        type: string
       docker_target:
         description: 'The makefile target for building the application docker image'
         required: false
-        default: docker-image
+        default: docker-image-pipeline
         type: string
-      application_name:
+      monorepo_application_name:
         description: 'The application deployed. Required in mono repository'
         required: false
-        default: "-"
+        default: ''
+        type: string
+      monorepo_application_folder:
+        description: 'The monorepo apps/NAME/. Required in mono repository'
+        required: false
+        default: ''
+        type: string
+      monorepo_image_name:
+        description: 'The monorepo image name. Required in mono repository'
+        required: false
+        default: ''
         type: string
     secrets:
       slack_channel_id:
@@ -91,6 +71,9 @@ on:
       service_account:
         description: 'Service Account email address'
         required: true
+      token:
+        description: 'Push Token'
+        required: true
 
 jobs:
   # Builds, Publish and Deploys docker containers to a kubernetes cluster
@@ -98,25 +81,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-    - if: inputs.deploy == true
-      name: Checkout Deploy Code
-      uses: actions/checkout@v4
-  
-    - if: inputs.deploy == false
-      name: Checkout Code
+    - name: Checkout Deploy Code
       uses: actions/checkout@v4
       with:
-        ref: ${{ inputs.branch }}
+        path: code-source
 
-
-    - if: inputs.setup == true
-      uses: abbbi/github-actions-tune@v1
-
-    - name: GHA Environment setup
-      if: inputs.setup == true
-      shell: bash
-      run: |-
-        make setup
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ inputs.environment }}
+        path: destiny-manifest
+        token: ${{ secrets.token }}
+      continue-on-error: true
 
     - name: Setup Go
       uses: actions/setup-go@v4
@@ -129,25 +105,22 @@ jobs:
       run: |-
         go version
 
-    - name: Echo Input Information
-      shell: bash
-      run: |-
-        echo "You are deploying from the ${GITHUB_REF##*/} branch to the ${{ inputs.environment }} environment" 
-    
     - name: Setting branch name
       shell: bash
       run: |-
+        export APP_NAME=${{ inputs.monorepo_application_name }}
+        export APP_FOLDER_NAME=${{ inputs.monorepo_application_folder }}
+        export APP_REPO_NAME=${{github.repository}}
+        export APP_REPO_NAME="${APP_REPO_NAME/TrafficDriven\//}"
+        if [ ! -z "$APP_NAME" ]
+        then
+          export APP_REPO_NAME="${{ inputs.monorepo_image_name }}"
+        fi
+
+        echo "APP_REPO_NAME=$(echo ${APP_REPO_NAME})" >> $GITHUB_ENV
+        echo "APP_FOLDER_NAME=$(echo ${APP_FOLDER_NAME})" >> $GITHUB_ENV
         echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
         echo "ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
-        echo "NODE_ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
-        echo "PROJECT_NAME=$(echo ${{ inputs.image }})" >> $GITHUB_ENV
-
-    - name: Setting Env With Version
-      id: get_version_name
-      shell: bash
-      run: |-
-        echo "VERSION=v$(make ${{ inputs.version_target }}).$(echo ${GITHUB_SHA::7})"  >> $GITHUB_ENV
-        echo "RAW_VERSION=v$(make ${{ inputs.version_target }})"  >> $GITHUB_ENV
 
     - name: Authenticate to Google Cloud
       uses: 'google-github-actions/auth@v1'
@@ -164,53 +137,63 @@ jobs:
       run: |
         gcloud auth configure-docker ${{ inputs.location }}-docker.pkg.dev -q
 
-    - name: Check if docker build is required
-      id: needs_docker_build
-      shell: bash
-      run: |-
-        OUTPUT=$(gcloud container images list-tags ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }})
-        if echo "$OUTPUT" | grep -q "${{ env.VERSION }}"; then
-          echo "SHOULD_BUILD=no"  >> $GITHUB_OUTPUT
-          echo "We will not be creating a new docker image"
-        else
-          echo "SHOULD_BUILD=yes" >> $GITHUB_OUTPUT
-          echo "We will be creating a new docker image"
-        fi
-        
-
     - name: Run Docker Build
-      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
       shell: bash
       run: |-
-        make ${{ inputs.docker_target }}
+        cd code-source
+        make ENV=${{ env.ENV }} NODE_ENV=${{ env.ENV }} GITHUB_SHA_VALUE=${{ github.sha }} ${{ inputs.docker_target }}
 
     - name: Publish the Docker image to Google Container Registry
-      if: ${{ steps.needs_docker_build.outputs.SHOULD_BUILD == 'yes' }}
       shell: bash
       run: |-
-        docker tag ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
-        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.VERSION }}
-        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ env.RAW_VERSION }}
+        docker tag  ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ env.APP_REPO_NAME }}:${{ github.sha }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ env.APP_REPO_NAME }}:${{ github.sha }}
+        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ env.APP_REPO_NAME }}:${{ github.sha }}
+        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ env.APP_REPO_NAME }}:${{ github.sha }}
 
-    - name: Get the GKE credentials so we can deploy to the cluster
-      if: inputs.deploy == true
-      uses: google-github-actions/get-gke-credentials@v1.0.2
-      with:
-        cluster_name: ${{ inputs.gke_cluster }}
-        location: ${{ inputs.location }}
-        project_id: ${{ inputs.gke_project_id }}
-
-    - name: Deploy to Kubernetes Cluster
-      if: inputs.deploy == true
+    - name: Generating manifest
       shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.token }}
       run: |-
-        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.VERSION }} --set app.version=${{ env.VERSION }} | kubectl apply -f -
+        DIR="destiny-manifest/${APP_FOLDER_NAME}manifest"
+        cd code-source
+        helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} > "../destiny-manifest/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
+
+        cd ../destiny-manifest
+        source "${{ env.APP_FOLDER_NAME }}build-tags"
+
+        cat <<-EOF > "${{ env.APP_FOLDER_NAME }}build-tags"
+        export APP_NAME="${{ env.APP_NAME }}"
+        export IMAGE_TAG="${{ github.sha }}"
+        export COMMIT_ID_ROLLBACK="$COMMIT_ID"
+        export COMMIT_ID="${{ github.sha }}"
+        export BRANCH="${{ github.ref_name }}"
+        export ACTION="deploy"
+        EOF
+
+    - name: Pushing manifest to ${{ env.ENV }} branch
+      shell: bash
+      env:
+        GH_TOKEN: ${{ secrets.token }}
+      run: |-
+        cd destiny-manifest
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add .
+        git commit -m "deploy in ${{ env.ENV }}" --no-verify
+        git push --set-upstream origin ${{ env.ENV }}
 
     - name: Post Slack Notification
-      if: inputs.notification == true
+      if: ${{ false }}
+        #if: inputs.notification == true
       uses: slackapi/slack-github-action@v1.24.0
       with:
         channel-id: ${{ secrets.slack_channel_id }}
-        slack-message: '*${{ github.actor }}* is shipping *${{ inputs.application_name }}* from *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{ env.ENV }}* environment :tada:'
+        slack-message: '*${{ github.actor }}* is shipping *${{ env.APP_REPO_NAME }}* from *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{ env.ENV }}* environment :tada:'
       env:
         SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}
+
+    - name: Slack notification rehearse
+      shell: bash
+      run: |-
+        echo "*${{ github.actor }}* is shipping *${{ env.APP_REPO_NAME }}* from *${{ env.BRANCH }}* branch of *${{ github.repository }}* to *${{ env.ENV }}* environment :tada:"

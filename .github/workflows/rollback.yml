@@ -1,8 +1,13 @@
-name: Reset
+name: Rollback
 
 on:
   workflow_call:
     inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        default: production
+        type: string
       helm_chart_file:
         description: 'Helm Chart'
         required: false
@@ -30,25 +35,17 @@ on:
         required: false
 
 jobs:
-  # Deploy Branch to Kubernetes Cluster
   rollback:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
       with:
-        ref: stage
-        path: destiny-manifest-stage
+        ref: ${{ inputs.environment }}
+        path: destiny-manifest
         token: ${{ secrets.token }}
 
-    - name: Checkout Code
-      uses: actions/checkout@v4
-      with:
-        ref: production
-        path: destiny-manifest-production
-        token: ${{ secrets.token }}
-
-    - name: Preparing to reset
+    - name: Preparing to rollback
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.token }}
@@ -65,32 +62,35 @@ jobs:
         echo "APP_REPO_NAME=$(echo ${APP_NAME})" >> $GITHUB_ENV
         echo "APP_FOLDER_NAME=$(echo ${APP_FOLDER_NAME})" >> $GITHUB_ENV
 
-        DIR="destiny-manifest-production${APP_FOLDER_NAME}"
+        DIR="destiny-manifest${APP_FOLDER_NAME}"
 
         if [ ! -d "$DIR" ]; then
-          echo "no production branch found. Can't reset"
+          echo "no ${{ inputs.environment }} branch found. Can't rollback"
           exit 1
         fi
 
-        cd destiny-manifest-production
+        cd destiny-manifest
         source "${APP_FOLDER_NAME}build-tags"
-        echo "COMMIT_ID_PRODUCTION=$(echo $COMMIT_ID)" >> $GITHUB_ENV
+        echo "COMMIT_ID_ROLLBACK=$(echo $COMMIT_ID_ROLLBACK)" >> $GITHUB_ENV
 
-        cd ../destiny-manifest-stage
+        if [[ -z "${COMMIT_ID_ROLLBACK}" ]]; then
+          echo "no COMMIT_ID_ROLLBACK found. Can't rollback"
+          exit 1
+        fi
 
-        cat <<-EOF > "${APP_FOLDER_NAME}build-tags"
+        cat <<-EOF > "${APP_FOLDER_NAME|build-tags"
         export APP_NAME="$APP_NAME"
-        export IMAGE_TAG="$COMMIT_ID"
+        export IMAGE_TAG="$COMMIT_ID_ROLLBACK"
         export COMMIT_ID_ROLLBACK=""
-        export COMMIT_ID="$COMMIT_ID"
+        export COMMIT_ID="$COMMIT_ID_ROLLBACK"
         export BRANCH="$BRANCH"
-        export ACTION="reset"
+        export ACTION="rollback"
         EOF
 
     - name: Checkout Code
       uses: actions/checkout@v4
       with:
-        ref: ${{ env.COMMIT_ID_PRODUCTION }}
+        ref: ${{ env.COMMIT_ID_ROLLBACK }}
         path: code-source
         token: ${{ secrets.token }}
 
@@ -98,30 +98,31 @@ jobs:
       shell: bash
       run: |-
         cd code-source
-        helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environment }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_PRODUCTION }} --set app.version=${{ env.COMMIT_ID_PRODUCTION }} > "../destiny-manifest-stage/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
+        helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environment }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_ROLLBACK }} --set app.version=${{ env.COMMIT_ID_ROLLBACK }} > "../destiny-manifest/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
 
     - name: Pushing manifest to ${{ inputs.environment }} branch
+      if: ${{ false }}
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.token }}
       run: |-
-        cd destiny-manifest-stage
+        cd destiny-manifest
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add .
-        git commit -m "reset ${{ inputs.environment }}" --no-verify
-        git push --set-upstream origin ${{ inputs.environments }}
+        git commit -m "rolling back in ${{ inputs.environment }}" --no-verify
+        git push --set-upstream origin ${{ inputs.environment }}
 
     - name: Post Slack Notification
       if: ${{ false }}
       uses: slackapi/slack-github-action@v1.24.0
       with:
         channel-id: ${{ secrets.slack_channel_id }}
-        slack-message: '*${{ github.actor }}* is rolling back *${{ env.APP_REPO_NAME}}* in *${{ inputs.environment }}* :tada:'
+        slack-message: '*${{ github.actor }}* is rolling back *${{ env.APP_REPO_NAME }}* in *${{ inputs.environment }}* :tada:'
       env:
         SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}
 
     - name: Slack notification rehearse
       shell: bash
       run: |-
-        echo "GHA has reset ${{ env.APP_REPO_NAME }} in stage :tada:"
+        echo "${{ github.actor }} is rolling back ${{ env.APP_REPO_NAME }} in ${{ inputs.environment }} :tada:"

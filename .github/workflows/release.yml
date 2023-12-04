@@ -1,8 +1,18 @@
-name: Reset
+name: Release
 
 on:
   workflow_call:
     inputs:
+      environmentFrom:
+        description: 'Environment From'
+        required: false
+        default: stage
+        type: string
+      environmentTo:
+        description: 'Environment To'
+        required: false
+        default: production
+        type: string
       helm_chart_file:
         description: 'Helm Chart'
         required: false
@@ -22,36 +32,37 @@ on:
       token:
         description: 'Push Token'
         required: true
-      slack_bot_token:
-        description: 'Slack Token'
-        required: true
       slack_channel_id:
         description: 'Slack Channel ID.'
+        required: false
+      slack_bot_token:
+        description: 'Slack Token'
         required: false
 
 jobs:
   # Deploy Branch to Kubernetes Cluster
-  rollback:
+  release:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
       with:
-        ref: stage
-        path: destiny-manifest-stage
+        ref: ${{ inputs.environmentFrom }}
+        path: destiny-manifest-from
         token: ${{ secrets.token }}
 
     - name: Checkout Code
       uses: actions/checkout@v4
       with:
-        ref: production
-        path: destiny-manifest-production
+        ref: ${{ inputs.environmentTo }}
+        path: destiny-manifest-to
         token: ${{ secrets.token }}
+      continue-on-error: true
 
-    - name: Preparing to reset
-      shell: bash
+    - name: Preparing to release to ${{ inputs.environmentTo }}
       env:
         GH_TOKEN: ${{ secrets.token }}
+      shell: bash
       run: |-
         export APP_NAME=${{ inputs.monorepo_application_name }}
         export APP_FOLDER_NAME=${{ inputs.monorepo_application_folder }}
@@ -65,63 +76,73 @@ jobs:
         echo "APP_REPO_NAME=$(echo ${APP_NAME})" >> $GITHUB_ENV
         echo "APP_FOLDER_NAME=$(echo ${APP_FOLDER_NAME})" >> $GITHUB_ENV
 
-        DIR="destiny-manifest-production${APP_FOLDER_NAME}"
+        DIR="destiny-manifest-from"
+        DIR_TO="destiny-manifest-to/${APP_FOLDER_NAME}manifest"
 
         if [ ! -d "$DIR" ]; then
-          echo "no production branch found. Can't reset"
+          echo "no ${{ inputs.environmentFrom }} branch found. Can't release"
           exit 1
         fi
 
-        cd destiny-manifest-production
+        cd destiny-manifest-to
         source "${APP_FOLDER_NAME}build-tags"
-        echo "COMMIT_ID_PRODUCTION=$(echo $COMMIT_ID)" >> $GITHUB_ENV
+        export COMMIT_ID_ROLLBACK_ENV_TO=$COMMIT_ID
 
-        cd ../destiny-manifest-stage
+        cd ../destiny-manifest-from
+        source "${APP_FOLDER_NAME}build-tags"
+        echo "COMMIT_ID=$(echo $COMMIT_ID)" >> $GITHUB_ENV
 
+        if [[ -z "${COMMIT_ID}" ]]; then
+          echo "no COMMIT_ID found. Can't release"
+          exit 1
+        fi
+
+        cd ../destiny-manifest-to
         cat <<-EOF > "${APP_FOLDER_NAME}build-tags"
         export APP_NAME="$APP_NAME"
         export IMAGE_TAG="$COMMIT_ID"
-        export COMMIT_ID_ROLLBACK=""
+        export COMMIT_ID_ROLLBACK="$COMMIT_ID_ROLLBACK_ENV_TO"
         export COMMIT_ID="$COMMIT_ID"
         export BRANCH="$BRANCH"
-        export ACTION="reset"
+        export ACTION="release"
         EOF
 
     - name: Checkout Code
       uses: actions/checkout@v4
       with:
-        ref: ${{ env.COMMIT_ID_PRODUCTION }}
+        ref: ${{ env.COMMIT_ID }}
         path: code-source
         token: ${{ secrets.token }}
 
-    - name: Helming the rollback commit_id code
+    - name: Helming the release commit_id code
+      if: success() || failure()
       shell: bash
       run: |-
         cd code-source
-        helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environment }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_PRODUCTION }} --set app.version=${{ env.COMMIT_ID_PRODUCTION }} > "../destiny-manifest-stage/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
+        helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environmentTo }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID }} --set app.version=${{ env.COMMIT_ID }} > "../destiny-manifest-to/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
 
-    - name: Pushing manifest to ${{ inputs.environment }} branch
+    - name: Pushing manifest to ${{ inputs.environmentTo }} branch
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.token }}
       run: |-
-        cd destiny-manifest-stage
+        cd destiny-manifest-to
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add .
-        git commit -m "reset ${{ inputs.environment }}" --no-verify
-        git push --set-upstream origin ${{ inputs.environments }}
+        git commit -m "releasing to ${{ inputs.environmentTo }}" --no-verify
+        git push --set-upstream origin ${{ inputs.environmentTo }}
 
     - name: Post Slack Notification
       if: ${{ false }}
       uses: slackapi/slack-github-action@v1.24.0
       with:
         channel-id: ${{ secrets.slack_channel_id }}
-        slack-message: '*${{ github.actor }}* is rolling back *${{ env.APP_REPO_NAME}}* in *${{ inputs.environment }}* :tada:'
+        slack-message: '*${{ github.actor }}* is releasing *${{ env.APP_REPO_NAME }}* in *${{ inputs.environmentTo }}* :tada:'
       env:
         SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}
 
     - name: Slack notification rehearse
       shell: bash
       run: |-
-        echo "GHA has reset ${{ env.APP_REPO_NAME }} in stage :tada:"
+        echo "*${{ github.actor }}* is releasing *${{ env.APP_REPO_NAME }}* in *${{ inputs.environmentTo }}* :tada:"
