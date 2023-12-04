@@ -183,10 +183,10 @@ jobs:
         #fi
         DIR="destiny-manifest/${APP_FOLDER_NAME}manifest"
         cd code-source
-        helm template ${APP_DOCKER_TARGET} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} > "../destiny-manifest/${APP_FOLDER_NAME}manifest/manifest.yaml"
+        helm template ${{ env.APP_DOCKER_TARGET }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} > "../destiny-manifest/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
 
         cd ../destiny-manifest
-        source "${APP_FOLDER_NAME}build-tags"
+        source "${{ env.APP_FOLDER_NAME }}build-tags"
 
         #FILE_BUILD_TAGS="${APP_FOLDER_NAME}build-tags"
         #if [ -f "$FILE_BUILD_TAGS" ]; then
@@ -196,7 +196,7 @@ jobs:
         #    echo "===== not sourcing build-tags"
         #fi
 
-        cat <<-EOF > "${APP_FOLDER_NAME}build-tags"
+        cat <<-EOF > "${{ env.APP_FOLDER_NAME }}build-tags"
         export APP_NAME="${{ env.APP_NAME }}"
         export IMAGE_TAG="${{ github.sha }}"
         export COMMIT_ID_ROLLBACK="$COMMIT_ID"
@@ -223,7 +223,7 @@ jobs:
       uses: slackapi/slack-github-action@v1.24.0
       with:
         channel-id: ${{ secrets.slack_channel_id }}
-        slack-message: '*${{ github.actor }}* is shipping *${{ inputs.application_name }}* from *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{ env.ENV }}* environment :tada:'
+        slack-message: '*${{ github.actor }}* is shipping *${{ env.APP_REPO_NAME }}* from *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{ env.ENV }}* environment :tada:'
       env:
         SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}
 
@@ -231,4 +231,4 @@ jobs:
       shell: bash
       run: |-
         cat "${APP_FOLDER_NAME}build-tags"
-        echo "${{ github.actor }} is rolling back ${{ env.APP_REPO_NAME}} in ${{ inputs.environment }} :tada:"
+        echo "${{ github.actor }} is rolling back ${{ env.APP_REPO_NAME }} in ${{ inputs.environment }} :tada:"
