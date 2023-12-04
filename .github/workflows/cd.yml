@@ -155,7 +155,6 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.token }}
       run: |-
-        ls -lart destiny-manifest
         cd code-source
         helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} > ../destiny-manifest/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml
 
