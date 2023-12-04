@@ -121,6 +121,8 @@ jobs:
         echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
         echo "ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
 
+        echo $APP_DOCKER_TARGET
+
     - name: Authenticate to Google Cloud
       uses: 'google-github-actions/auth@v1'
       with:
