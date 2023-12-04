@@ -13,6 +13,11 @@ on:
         required: false
         default: ''
         type: string
+      monorepo_application_folder:
+        description: 'The monorepo apps/NAME/. Required in mono repository'
+        required: false
+        default: ''
+        type: string
     secrets:
       token:
         description: 'Push Token'
@@ -94,7 +99,7 @@ jobs:
       shell: bash
       run: |-
         cd code-source
-        helm template $APP_FOLDER_NAME${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environment }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_PRODUCTION }} --set app.version=${{ env.COMMIT_ID_PRODUCTION }} > ../destiny-manifest-stage/manifest/manifest.yaml
+        helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environment }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_PRODUCTION }} --set app.version=${{ env.COMMIT_ID_PRODUCTION }} > "../destiny-manifest-stage/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
 
     - name: Pushing manifest to ${{ inputs.environment }} branch
       shell: bash
@@ -120,5 +125,4 @@ jobs:
     - name: Slack notification rehearse
       shell: bash
       run: |-
-        cat "${APP_FOLDER_NAME}build-tags"
-        echo "GHA has reset ${{ env.APP_REPO_NAME}} in stage :tada:"
+        echo "GHA has reset ${{ env.APP_REPO_NAME }} in stage :tada:"

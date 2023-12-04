@@ -58,9 +58,9 @@ jobs:
         ref: ${{ inputs.environmentTo }}
         path: destiny-manifest-to
         token: ${{ secrets.token }}
+      continue-on-error: true
 
     - name: Preparing to release to ${{ inputs.environmentTo }}
-      if: success() || failure()
       env:
         GH_TOKEN: ${{ secrets.token }}
       shell: bash
@@ -123,7 +123,6 @@ jobs:
         EOF
 
     - name: Checkout Code
-      if: success() || failure()
       uses: actions/checkout@v4
       with:
         ref: ${{ env.COMMIT_ID }}
@@ -135,10 +134,9 @@ jobs:
       shell: bash
       run: |-
         cd code-source
-        helm template $APP_FOLDER_NAME${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environmentTo }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID }} --set app.version=${{ env.COMMIT_ID }} > ../destiny-manifest-to/manifest/manifest.yaml
+        helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environmentTo }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID }} --set app.version=${{ env.COMMIT_ID }} > "../destiny-manifest-to/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
 
     - name: Pushing manifest to ${{ inputs.environmentTo }} branch
-      if: success() || failure()
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.token }}
@@ -162,5 +160,4 @@ jobs:
     - name: Slack notification rehearse
       shell: bash
       run: |-
-        cat "${APP_FOLDER_NAME}build-tags"
         echo "*${{ github.actor }}* is releasing *${{ env.APP_REPO_NAME }}* in *${{ inputs.environmentTo }}* :tada:"
