@@ -229,5 +229,4 @@ jobs:
     - name: Slack notification rehearse
       shell: bash
       run: |-
-        cat "${APP_FOLDER_NAME}build-tags"
-        echo "${{ github.actor }} is rolling back ${{ env.APP_REPO_NAME }} in ${{ inputs.environment }} :tada:"
+        echo "*${{ github.actor }}* is shipping *${{ env.APP_REPO_NAME }}* from *${{ env.BRANCH }}* branch of *${{ github.repository }}* to *${{ env.ENV }}* environment :tada:"
