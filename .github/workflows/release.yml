@@ -5,18 +5,28 @@ on:
     inputs:
       environmentFrom:
         description: 'Environment From'
-        required: true
+        required: false
         default: stage
         type: string
       environmentTo:
         description: 'Environment To'
-        required: true
+        required: false
         default: production
         type: string
       helm_chart_file:
         description: 'Helm Chart'
         required: false
         default: 'deployments/kubernetes/helm/chart'
+        type: string
+      monorepo_application_name:
+        description: 'Application Name'
+        required: false
+        default: ''
+        type: string
+      monorepo_application_folder:
+        description: 'The monorepo apps/NAME/. Required in mono repository'
+        required: false
+        default: ''
         type: string
     secrets:
       token:
@@ -27,7 +37,9 @@ on:
         required: false
       slack_bot_token:
         description: 'Slack Token'
-        required: true
+        required: false
+        default: "deployments"
+
 jobs:
   # Deploy Branch to Kubernetes Cluster
   release:
@@ -53,31 +65,46 @@ jobs:
         GH_TOKEN: ${{ secrets.token }}
       shell: bash
       run: |-
+        export APP_NAME=${{ inputs.monorepo_application_name }}
+        export APP_FOLDER_NAME=${{ inputs.monorepo_application_folder }}
+        export APP_REPO_NAME=${{github.repository}}
+        export APP_REPO_NAME="${APP_REPO_NAME/TrafficDriven\//}"
+        if [ ! -z "$APP_NAME" ]
+        then
+          export APP_REPO_NAME="${APP_NAME}"
+        fi
+
+        echo "APP_REPO_NAME=$(echo ${APP_NAME})" >> $GITHUB_ENV
+        echo "APP_FOLDER_NAME=$(echo ${APP_FOLDER_NAME})" >> $GITHUB_ENV
+
         DIR="destiny-manifest-from"
-        DIR_TO="destiny-manifest-to/manifest"
+        DIR_TO="destiny-manifest-to/${APP_FOLDER_NAME}manifest"
 
         if [ ! -d "$DIR" ]; then
           echo "no ${{ inputs.environmentFrom }} branch found. Can't release"
           exit 1
         fi
 
-        if [ ! -d "$DIR_TO" ]; then
-          echo "directory do NOT exists"
-          rm -rf destiny-manifest-to
-          gh repo clone ${{ github.repository }} destiny-manifest-to -- --branch main
-          cd destiny-manifest-to
-          git switch --orphan ${{ inputs.environmentTo }}
-          git remote remove origin
-          git remote add origin "https://${{ secrets.token }}@github.com/${{ github.repository }}.git"
-          mkdir manifest
-        else
-          cd destiny-manifest-to
-          source "build-tags"
-          export COMMIT_ID_ROLLBACK_ENV_TO=$COMMIT_ID
-        fi
+        cd destiny-manifest-to
+        source "${APP_FOLDER_NAME}build-tags"
+        export COMMIT_ID_ROLLBACK_ENV_TO=$COMMIT_ID
+        #if [ ! -d "$DIR_TO" ]; then
+        #  echo "directory do NOT exists"
+        #  rm -rf destiny-manifest-to
+        #  gh repo clone ${{ github.repository }} destiny-manifest-to -- --branch main
+        #  cd destiny-manifest-to
+        #  git switch --orphan ${{ inputs.environmentTo }}
+        #  git remote remove origin
+        #  git remote add origin "https://${{ secrets.token }}@github.com/${{ github.repository }}.git"
+        #  mkdir manifest
+        #else
+        #  cd destiny-manifest-to
+        #  source "build-tags"
+        #  export COMMIT_ID_ROLLBACK_ENV_TO=$COMMIT_ID
+        #fi
 
         cd ../destiny-manifest-from
-        source "build-tags"
+        source "${APP_FOLDER_NAME}build-tags"
         echo "COMMIT_ID=$(echo $COMMIT_ID)" >> $GITHUB_ENV
 
         if [[ -z "${COMMIT_ID}" ]]; then
@@ -86,7 +113,7 @@ jobs:
         fi
 
         cd ../destiny-manifest-to
-        cat <<-EOF > "build-tags"
+        cat <<-EOF > "${APP_FOLDER_NAME}build-tags"
         export APP_NAME="$APP_NAME"
         export IMAGE_TAG="$COMMIT_ID"
         export COMMIT_ID_ROLLBACK="$COMMIT_ID_ROLLBACK_ENV_TO"
@@ -108,7 +135,7 @@ jobs:
       shell: bash
       run: |-
         cd code-source
-        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environmentTo }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID }} --set app.version=${{ env.COMMIT_ID }} > ../destiny-manifest-to/manifest/manifest.yaml
+        helm template $APP_FOLDER_NAME${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environmentTo }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID }} --set app.version=${{ env.COMMIT_ID }} > ../destiny-manifest-to/manifest/manifest.yaml
 
     - name: Pushing manifest to ${{ inputs.environmentTo }} branch
       if: success() || failure()
@@ -122,3 +149,18 @@ jobs:
         git add .
         git commit -m "releasing to ${{ inputs.environmentTo }}" --no-verify
         git push --set-upstream origin ${{ inputs.environmentTo }}
+
+    - name: Post Slack Notification
+      if: ${{ false }}
+      uses: slackapi/slack-github-action@v1.24.0
+      with:
+        channel-id: ${{ secrets.slack_channel_id }}
+        slack-message: '*${{ github.actor }}* is releasing *${{ env.APP_REPO_NAME }}* in *${{ inputs.environmentTo }}* :tada:'
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}
+
+    - name: Slack notification rehearse
+      shell: bash
+      run: |-
+        cat "${APP_FOLDER_NAME}build-tags"
+        echo "*${{ github.actor }}* is releasing *${{ env.APP_REPO_NAME }}* in *${{ inputs.environmentTo }}* :tada:"

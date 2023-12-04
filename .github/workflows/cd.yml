@@ -1,4 +1,4 @@
-name: CD
+name: Deploy
 
 on:
   workflow_call:
@@ -7,6 +7,7 @@ on:
         description: 'GAR Project ID'
         required: false
         type: string
+        default: 'tdt-platform'
       location:
         description: 'The location of the GAR'
         required: false
@@ -16,10 +17,7 @@ on:
         description: 'Image Repository'
         required: false
         type: string
-      image:
-        description: 'Image to be pushed'
-        required: false
-        type: string
+        default: 'mintlist'
       go_version:
         description: 'Go version'
         required: false
@@ -28,17 +26,12 @@ on:
       environment:
         description: 'Environment'
         required: false
-        default: dev
+        default: stage
         type: string
       helm_chart_file:
         description: 'Helm Chart'
         required: false
         default: 'deployments/kubernetes/helm/chart'
-        type: string
-      branch:
-        description: 'The branch to checkout if deploy is set to false (the default)'
-        required: false
-        default: main
         type: string
       notification:
         description: 'Send slack notification'
@@ -50,10 +43,15 @@ on:
         required: false
         default: docker-image-pipeline
         type: string
-      application_name:
+      monorepo_application_name:
         description: 'The application deployed. Required in mono repository'
         required: false
-        default: "-"
+        default: ''
+        type: string
+      monorepo_application_folder:
+        description: 'The monorepo apps/NAME/. Required in mono repository'
+        required: false
+        default: ''
         type: string
     secrets:
       slack_channel_id:
@@ -102,19 +100,26 @@ jobs:
       run: |-
         go version
 
-    - name: Echo Input Information
-      shell: bash
-      run: |-
-        TEST_TEST=${{ secrets.slack_bot_token }}
-        echo "You are deploying $TEST_TEST from the ${GITHUB_REF##*/} branch to the ${{ inputs.environment }} environment" 
-    
     - name: Setting branch name
       shell: bash
       run: |-
+        export APP_NAME=${{ inputs.monorepo_application_name }}
+        export APP_FOLDER_NAME=${{ inputs.monorepo_application_folder }}
+        export APP_REPO_NAME=${{github.repository}}
+        export APP_REPO_NAME="${APP_REPO_NAME/TrafficDriven\//}"
+        export APP_DOCKER_TARGET=${{ inputs.docker_target }}
+        if [ ! -z "$APP_NAME" ]
+        then
+          export APP_REPO_NAME="${APP_NAME}"
+          export APP_DOCKER_TARGET="${APP_FOLDER_NAME/apps\//}"
+          export APP_DOCKER_TARGET="${APP_FOLDER_NAME/\//}"
+          export APP_DOCKER_TARGET="${{ inputs.docker_target }}-apps-${APP_DOCKER_TARGET}"
+        fi
+
+        echo "APP_REPO_NAME=$(echo ${APP_REPO_NAME})" >> $GITHUB_ENV
+        echo "APP_FOLDER_NAME=$(echo ${APP_FOLDER_NAME})" >> $GITHUB_ENV
         echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
         echo "ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
-        echo "NODE_ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
-        echo "PROJECT_NAME=$(echo ${{ inputs.image }})" >> $GITHUB_ENV
 
     - name: Authenticate to Google Cloud
       uses: 'google-github-actions/auth@v1'
@@ -135,78 +140,68 @@ jobs:
       shell: bash
       run: |-
         cd code-source
-        make GITHUB_SHA_VALUE=${{ github.sha }} ${{ inputs.docker_target }}
+        make ENV=${{ env.ENV }} NODE_ENV=${{ env.ENV }} GITHUB_SHA_VALUE=${{ github.sha }} ${{ inputs.docker_target }}$APP_DOCKER_TARGET
 
     - name: Publish the Docker image to Google Container Registry
       shell: bash
       run: |-
-        docker tag ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }}
-        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }}
-        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ inputs.image }}:${{ github.sha }}
+        docker tag  ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ env.APP_REPO_NAME }}:${{ github.sha }} ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ env.APP_REPO_NAME }}:${{ github.sha }}
+        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ env.APP_REPO_NAME }}:${{ github.sha }}
+        docker push ${{ inputs.location }}-docker.pkg.dev/${{ inputs.repository_project_id }}/${{ inputs.repository }}/${{ env.APP_REPO_NAME }}:${{ github.sha }}
 
     - name: Generating manifest
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.token }}
       run: |-
-        DIR="destiny-manifest"
+        #if [ ! -d "$DIR" ]; then
+        #  echo "directory do NOT exists"
+        #  gh repo clone ${{ github.repository }} destiny-manifest -- --branch main
+        #  cd destiny-manifest
+        #  git switch --orphan ${{ env.ENV }}
+        #  git remote remove origin
+        #  git remote add origin "https://${{ secrets.token }}@github.com/${{ github.repository }}.git"
+        #  mkdir manifest
+        #  cd ..
+        #else
+        #  echo "directory exists"
 
-        if [ ! -d "$DIR" ]; then
-          echo "directory do NOT exists"
-          gh repo clone ${{ github.repository }} destiny-manifest -- --branch main
-          cd destiny-manifest
-          git switch --orphan ${{ env.ENV }}
-          git remote remove origin
-          git remote add origin "https://${{ secrets.token }}@github.com/${{ github.repository }}.git"
-          mkdir manifest
-          cd ..
-        else
-          echo "directory exists"
-
-          DIR="destiny-manifest/manifest"
-          if [ ! -d "$DIR" ]; then
-            echo "manifest/ does NOT exists"
-            rm -rf destiny-manifest/
-            gh repo clone ${{ github.repository }} destiny-manifest -- --branch main
-            cd destiny-manifest
-            git switch --orphan ${{ env.ENV }}
-            git remote remove origin
-            git remote add origin "https://${{ secrets.token }}@github.com/${{ github.repository }}.git"
-            mkdir manifest
-            cd ..
-          fi
-        fi
-
+        #  DIR="destiny-manifest/manifest"
+        #  if [ ! -d "$DIR" ]; then
+        #    echo "manifest/ does NOT exists"
+        #    rm -rf destiny-manifest/
+        #    gh repo clone ${{ github.repository }} destiny-manifest -- --branch main
+        #    cd destiny-manifest
+        #    git switch --orphan ${{ env.ENV }}
+        #    git remote remove origin
+        #    git remote add origin "https://${{ secrets.token }}@github.com/${{ github.repository }}.git"
+        #    mkdir manifest
+        #    cd ..
+        #  fi
+        #fi
+        DIR="destiny-manifest/${APP_FOLDER_NAME}manifest"
         cd code-source
-        helm template ${{ inputs.helm_chart_file }} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} > ../destiny-manifest/manifest/manifest.yaml
+        helm template ${APP_DOCKER_TARGET} --set app.targetRevision=${{ env.ENV }} --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} > "../destiny-manifest/${APP_FOLDER_NAME}manifest/manifest.yaml"
 
         cd ../destiny-manifest
+        source "${APP_FOLDER_NAME}build-tags"
 
-        FILE_BUILD_TAGS="build-tags"
-        if [ -f "$FILE_BUILD_TAGS" ]; then
-          echo "===== sourcing build-tags"
-          source "build-tags"
-        else
-          echo "===== not sourcing build-tags"
-        fi
+        #FILE_BUILD_TAGS="${APP_FOLDER_NAME}build-tags"
+        #if [ -f "$FILE_BUILD_TAGS" ]; then
+        #  echo "===== sourcing build-tags"
+        #    source "${FILE_BUILD_TAGS}"
+        #  else
+        #    echo "===== not sourcing build-tags"
+        #fi
 
-        cat <<-EOF > "build-tags"
-        export APP_NAME="${{ inputs.image }}"
+        cat <<-EOF > "${APP_FOLDER_NAME}build-tags"
+        export APP_NAME="${{ env.APP_NAME }}"
         export IMAGE_TAG="${{ github.sha }}"
         export COMMIT_ID_ROLLBACK="$COMMIT_ID"
         export COMMIT_ID="${{ github.sha }}"
         export BRANCH="${{ github.ref_name }}"
         export ACTION="deploy"
         EOF
-
-      #        export COMMIT_MESSAGE=$(cat <<EOF
-      #        image ${{ inputs.image }}:${IMAGE_TAG}
-      #      
-      #        commit ${{ github.sha }}
-      #        EOF
-      #        )
-      #        
-      #        echo "COMMIT_MESSAGE=$COMMIT_MESSAGE" >> $GITHUB_ENV
 
     - name: Pushing manifest to ${{ env.ENV }} branch
       shell: bash
@@ -221,10 +216,17 @@ jobs:
         git push --set-upstream origin ${{ env.ENV }}
 
     - name: Post Slack Notification
-      if: inputs.notification == true
+      if: ${{ false }}
+        #if: inputs.notification == true
       uses: slackapi/slack-github-action@v1.24.0
       with:
         channel-id: ${{ secrets.slack_channel_id }}
         slack-message: '*${{ github.actor }}* is shipping *${{ inputs.application_name }}* from *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{ env.ENV }}* environment :tada:'
       env:
         SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}
+
+    - name: Slack notification rehearse
+      shell: bash
+      run: |-
+        cat "${APP_FOLDER_NAME}build-tags"
+        echo "${{ github.actor }} is rolling back ${{ env.APP_REPO_NAME}} in ${{ inputs.environment }} :tada:"
