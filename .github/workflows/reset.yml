@@ -3,6 +3,11 @@ name: Reset
 on:
   workflow_call:
     inputs:
+      environment:
+        description: 'Environment'
+        required: false
+        default: stage
+        type: string
       helm_chart_file:
         description: 'Helm Chart'
         required: false
