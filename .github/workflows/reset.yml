@@ -104,7 +104,7 @@ jobs:
         path: code-source
         token: ${{ secrets.token }}
 
-    - name: Helming the rollback commit_id code
+    - name: Helming the reset from commit_id code
       shell: bash
       run: |-
         cd code-source
@@ -123,15 +123,9 @@ jobs:
         git push --set-upstream origin ${{ inputs.environments }}
 
     - name: Post Slack Notification
-      if: ${{ false }}
       uses: slackapi/slack-github-action@v1.24.0
       with:
         channel-id: ${{ secrets.slack_channel_id }}
-        slack-message: '*${{ github.actor }}* is rolling back *${{ env.APP_REPO_NAME}}* in *${{ inputs.environment }}* :tada:'
+        slack-message: '*GHA* is reseting *${{ env.APP_REPO_NAME }}* in *${{ inputs.environment }}* :tada:'
       env:
         SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}
-
-    - name: Slack notification rehearse
-      shell: bash
-      run: |-
-        echo "GHA has reset ${{ env.APP_REPO_NAME }} in stage :tada:"
