@@ -134,15 +134,9 @@ jobs:
         git push --set-upstream origin ${{ inputs.environmentTo }}
 
     - name: Post Slack Notification
-      if: ${{ false }}
       uses: slackapi/slack-github-action@v1.24.0
       with:
         channel-id: ${{ secrets.slack_channel_id }}
         slack-message: '*${{ github.actor }}* is releasing *${{ env.APP_REPO_NAME }}* in *${{ inputs.environmentTo }}* :tada:'
       env:
         SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}
-
-    - name: Slack notification rehearse
-      shell: bash
-      run: |-
-        echo "*${{ github.actor }}* is releasing *${{ env.APP_REPO_NAME }}* in *${{ inputs.environmentTo }}* :tada:"

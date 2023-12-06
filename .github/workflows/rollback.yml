@@ -101,7 +101,6 @@ jobs:
         helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=${{ inputs.environment }} --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_ROLLBACK }} --set app.version=${{ env.COMMIT_ID_ROLLBACK }} > "../destiny-manifest/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
 
     - name: Pushing manifest to ${{ inputs.environment }} branch
-      if: ${{ false }}
       shell: bash
       env:
         GH_TOKEN: ${{ secrets.token }}
