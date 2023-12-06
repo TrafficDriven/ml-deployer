@@ -86,13 +86,6 @@ jobs:
       with:
         path: code-source
 
-    - name: Checkout Code
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ inputs.environment }}
-        path: destiny-manifest
-        token: ${{ secrets.token }}
-      continue-on-error: true
 
     - name: Setup Go
       uses: actions/setup-go@v4
@@ -112,16 +105,30 @@ jobs:
         export APP_FOLDER_NAME=${{ inputs.monorepo_application_folder }}
         export APP_REPO_NAME=${{github.repository}}
         export APP_REPO_NAME="${APP_REPO_NAME/TrafficDriven\//}"
+        export ENV= ${{ inputs.environment }}
         if [ ! -z "$APP_NAME" ]
         then
           export APP_REPO_NAME="${{ inputs.monorepo_image_name }}"
         fi
 
+        if [ -z "$ENV" ]
+        then
+          export ENV="stage"
+        fi
+
         echo "APP_REPO_NAME=$(echo ${APP_REPO_NAME})" >> $GITHUB_ENV
         echo "APP_FOLDER_NAME=$(echo ${APP_FOLDER_NAME})" >> $GITHUB_ENV
         echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
-        echo "ENV=$(echo ${{ inputs.environment }})" >> $GITHUB_ENV
+        echo "ENV=$(echo ${ENV})" >> $GITHUB_ENV
 
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ env.ENV }}
+        path: destiny-manifest
+        token: ${{ secrets.token }}
+
+      continue-on-error: true
     - name: Authenticate to Google Cloud
       uses: 'google-github-actions/auth@v1'
       with:
@@ -213,6 +220,6 @@ jobs:
       uses: slackapi/slack-github-action@v1.24.0
       with:
         channel-id: ${{ secrets.slack_channel_id }}
-        slack-message: '*${{ github.actor }}* is shipping *${{ env.APP_REPO_NAME }}* from *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{ inputs.environment }}* environment :tada:'
+        slack-message: '*${{ github.actor }}* is shipping *${{ env.APP_REPO_NAME }}* from *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{inputs.environment}}* environment :tada:'
       env:
         SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}
