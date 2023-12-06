@@ -108,7 +108,7 @@ jobs:
       shell: bash
       run: |-
         export TARGET_ENVIRONMENT_HELM=${{ inputs.environment }}
-        if [ "$TARGET_ENVIRONMENT" == "production" ]
+        if [ "$TARGET_ENVIRONMENT_HELM" == "production" ]
         then
           export TARGET_ENVIRONMENT_HELM=main
         fi
