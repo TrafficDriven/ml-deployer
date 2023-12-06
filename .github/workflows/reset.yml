@@ -41,7 +41,7 @@ on:
 
 jobs:
   # Deploy Branch to Kubernetes Cluster
-  rollback:
+  reset:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Code
@@ -121,6 +121,7 @@ jobs:
         git add .
         git commit -m "reset ${{ inputs.environment }}" --no-verify
         git push --set-upstream origin ${{ inputs.environments }}
+      continue-on-error: true
 
     - name: Post Slack Notification
       uses: slackapi/slack-github-action@v1.24.0
