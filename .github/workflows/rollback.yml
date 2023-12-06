@@ -59,7 +59,7 @@ jobs:
           export APP_REPO_NAME="${APP_NAME}"
         fi
 
-        echo "APP_REPO_NAME=$(echo ${APP_NAME})" >> $GITHUB_ENV
+        echo "APP_REPO_NAME=$(echo ${APP_REPO_NAME})" >> $GITHUB_ENV
         echo "APP_FOLDER_NAME=$(echo ${APP_FOLDER_NAME})" >> $GITHUB_ENV
 
         DIR="destiny-manifest${APP_FOLDER_NAME}"
