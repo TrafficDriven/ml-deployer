@@ -163,7 +163,7 @@ jobs:
         GH_TOKEN: ${{ secrets.token }}
       run: |-
 
-        export TARGET_ENVIRONMENT_HELM=${{ inputs.environment }}
+        export TARGET_ENVIRONMENT_HELM=${{ env.ENV }}
         if [ "$TARGET_ENVIRONMENT_HELM" == "production" ]
         then
           export TARGET_ENVIRONMENT_HELM=main
@@ -220,6 +220,6 @@ jobs:
       uses: slackapi/slack-github-action@v1.24.0
       with:
         channel-id: ${{ secrets.slack_channel_id }}
-        slack-message: '*${{ github.actor }}* is shipping *${{ env.APP_REPO_NAME }}* from *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{inputs.environment}}* environment :tada:'
+        slack-message: '*${{ github.actor }}* is shipping *${{ env.APP_REPO_NAME }}* from *${{ env.BRANCH }}* branch of *${{github.repository}}* to *${{ env.ENV }}* environment :tada:'
       env:
         SLACK_BOT_TOKEN: ${{ secrets.slack_bot_token }}
