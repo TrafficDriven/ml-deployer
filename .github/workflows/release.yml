@@ -119,7 +119,7 @@ jobs:
       shell: bash
       run: |-
 
-        export TARGET_ENVIRONMENT_HELM=${{ env.ENV }}
+        export TARGET_ENVIRONMENT_HELM=${{ inputs.environmentTo }}
         if [ "$TARGET_ENVIRONMENT" == "production" ]
         then
           export TARGET_ENVIRONMENT_HELM=main

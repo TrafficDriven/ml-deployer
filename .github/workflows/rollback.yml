@@ -97,7 +97,7 @@ jobs:
     - name: Helming the rollback commit_id code
       shell: bash
       run: |-
-        export TARGET_ENVIRONMENT_HELM=${{ env.ENV }}
+        export TARGET_ENVIRONMENT_HELM=${{ inputs.environment }}
         if [ "$TARGET_ENVIRONMENT" == "production" ]
         then
           export TARGET_ENVIRONMENT_HELM=main
