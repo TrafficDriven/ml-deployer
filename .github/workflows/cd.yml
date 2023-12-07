@@ -36,7 +36,7 @@ on:
       notification:
         description: 'Send slack notification'
         required: false
-        default: true
+        default: false
         type: boolean
       docker_target:
         description: 'The makefile target for building the application docker image'
@@ -176,7 +176,7 @@ jobs:
         source "${{ env.APP_FOLDER_NAME }}build-tags"
       
         cat <<-EOF > "${{ env.APP_FOLDER_NAME }}build-tags"
-        export APP_NAME="${{ env.APP_NAME }}"
+        export APP_NAME="${{ env.APP_REPO_NAME }}"
         export IMAGE_TAG="${{ github.sha }}"
         export COMMIT_ID_ROLLBACK="$COMMIT_ID"
         export COMMIT_ID="${{ github.sha }}"
@@ -194,7 +194,7 @@ jobs:
           labels:
             mintctl/release-info: "true"
         data:
-          APP_NAME: ${{ env.APP_NAME }}
+          APP_NAME: ${{ env.APP_REPO_NAME }}
           IMAGE_TAG: ${{ github.sha }}
           COMMIT_ID_ROLLBACK: $COMMIT_ID
           COMMIT_ID: ${{ github.sha }}
