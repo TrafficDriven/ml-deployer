@@ -136,7 +136,7 @@ jobs:
         apiVersion: v1
         kind: ConfigMap
         metadata:
-          name: ${APP_NAME}
+          name: ${APP_NAME}-release-info
           namespace: ${NAMESPACE}
           labels:
             mintctl/release-info: "true" 
