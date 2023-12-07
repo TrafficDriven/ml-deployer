@@ -122,7 +122,6 @@ jobs:
         data:
           APP_NAME: ${APP_NAME}
           IMAGE_TAG: ${COMMIT_ID_ROLLBACK}
-          COMMIT_ID_ROLLBACK:
           COMMIT_ID: ${COMMIT_ID_ROLLBACK}
           BRANCH: ${BRANCH}
           ACTION: rollback
