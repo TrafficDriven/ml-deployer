@@ -90,6 +90,7 @@ jobs:
 
         cat <<-EOF > "${APP_FOLDER_NAME}build-tags"
         export APP_NAME="$APP_NAME"
+        export NAMESPACE="${NAMESPACE}"
         export IMAGE_TAG="$COMMIT_ID"
         export COMMIT_ID_ROLLBACK=""
         export COMMIT_ID="$COMMIT_ID"

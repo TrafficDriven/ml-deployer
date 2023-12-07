@@ -177,6 +177,7 @@ jobs:
       
         cat <<-EOF > "${{ env.APP_FOLDER_NAME }}build-tags"
         export APP_NAME="${{ env.APP_REPO_NAME }}"
+        export NAMESPACE="${NAMESPACE}"
         export IMAGE_TAG="${{ github.sha }}"
         export COMMIT_ID_ROLLBACK="$COMMIT_ID"
         export COMMIT_ID="${{ github.sha }}"

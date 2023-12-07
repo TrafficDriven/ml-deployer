@@ -100,6 +100,7 @@ jobs:
         cd ../destiny-manifest-to
         cat <<-EOF > "${APP_FOLDER_NAME}build-tags"
         export APP_NAME="$APP_NAME"
+        export NAMESPACE="$NAMESPACE"
         export IMAGE_TAG="$COMMIT_ID"
         export COMMIT_ID_ROLLBACK="$COMMIT_ID_ROLLBACK_ENV_TO"
         export COMMIT_ID="$COMMIT_ID"
