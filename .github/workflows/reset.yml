@@ -116,27 +116,27 @@ jobs:
         cd code-source
         helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=$TARGET_ENVIRONMENT_HELM --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_PRODUCTION }} --set app.version=${{ env.COMMIT_ID_PRODUCTION }} > "../destiny-manifest-stage/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
 
-      #        cd ../destiny-manifest-stage
-      #        source "${{ env.APP_FOLDER_NAME }}build-tags"
-      #
-      #        cat <<-EOF >> "${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
-      #        ---
-      #        apiVersion: v1
-      #        kind: ConfigMap
-      #        metadata:
-      #          name: ${APP_NAME}
-      #          namespace: ${NAMESPACE}
-      #          labels:
-      #            mintctl/release-info: true
-      #        data:
-      #          APP_NAME: $APP_NAME
-      #          IMAGE_TAG: $COMMIT_ID
-      #          COMMIT_ID_ROLLBACK:
-      #          COMMIT_ID: $COMMIT_ID
-      #          BRANCH: $BRANCH
-      #          ACTION: reset"
-      #          ENVIRONMENT: ${{ env.ENV }}
-      #        EOF
+        cd ../destiny-manifest-stage
+        source "${{ env.APP_FOLDER_NAME }}build-tags"
+      
+        cat <<-EOF >> "${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
+        ---
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: ${APP_NAME}
+          namespace: ${NAMESPACE}
+          labels:
+            mintctl/release-info: "true"
+        data:
+          APP_NAME: ${APP_NAME}
+          IMAGE_TAG: ${COMMIT_ID}
+          COMMIT_ID_ROLLBACK:
+          COMMIT_ID: ${COMMIT_ID}
+          BRANCH: ${BRANCH}
+          ACTION: reset
+          ENVIRONMENT: ${{ inputs.environment }}
+        EOF
 
     - name: Pushing manifest to ${{ inputs.environment }} branch
       shell: bash
