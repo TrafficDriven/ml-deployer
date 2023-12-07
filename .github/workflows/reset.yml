@@ -75,7 +75,7 @@ jobs:
         echo "APP_REPO_NAME=$(echo ${APP_REPO_NAME})" >> $GITHUB_ENV
         echo "APP_FOLDER_NAME=$(echo ${APP_FOLDER_NAME})" >> $GITHUB_ENV
 
-        DIR="destiny-manifest-production${APP_REPO_NAME}"
+        DIR="destiny-manifest-production${APP_FOLDER_NAME}"
 
         if [ ! -d "$DIR" ]; then
           echo "no production branch found. Can't reset"
@@ -83,18 +83,18 @@ jobs:
         fi
 
         cd destiny-manifest-production
-        source "${APP_REPO_NAME}build-tags"
+        source "${APP_FOLDER_NAME}build-tags"
         echo "COMMIT_ID_PRODUCTION=$(echo $COMMIT_ID)" >> $GITHUB_ENV
 
         cd ../destiny-manifest-stage
 
         cat <<-EOF > "${APP_FOLDER_NAME}build-tags"
-        export APP_NAME="$APP_NAME"
+        export APP_NAME="${APP_REPO_NAME}"
         export NAMESPACE="${NAMESPACE}"
-        export IMAGE_TAG="$COMMIT_ID"
+        export IMAGE_TAG="${COMMIT_ID}"
         export COMMIT_ID_ROLLBACK=""
-        export COMMIT_ID="$COMMIT_ID"
-        export BRANCH="$BRANCH"
+        export COMMIT_ID="${COMMIT_ID}"
+        export BRANCH="${BRANCH}"
         export ACTION="reset"
         EOF
 
@@ -115,22 +115,22 @@ jobs:
         fi
 
         cd code-source
-        helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=$TARGET_ENVIRONMENT_HELM --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_PRODUCTION }} --set app.version=${{ env.COMMIT_ID_PRODUCTION }} > "../destiny-manifest-stage/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
+        helm template ${{ env.APP_FOLDER_NAME }}${{ inputs.helm_chart_file }} --set app.targetRevision=$TARGET_ENVIRONMENT_HELM --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_PRODUCTION }} --set app.version=${{ env.COMMIT_ID_PRODUCTION }} > "../destiny-manifest-stage/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
 
         cd ../destiny-manifest-stage
-        source "${{ env.APP_REPO_NAME }}build-tags"
+        source "${{ env.APP_FOLDER_NAME }}build-tags"
       
         cat <<-EOF >> "${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
         ---
         apiVersion: v1
         kind: ConfigMap
         metadata:
-          name: ${APP_NAME}-release-info
+          name: ${{ env.APP_REPO_NAME }}-release-info
           namespace: ${NAMESPACE}
           labels:
             mintctl/release-info: "true"
         data:
-          APP_NAME: ${APP_NAME}
+          APP_NAME: ${{ env.APP_REPO_NAME }}
           IMAGE_TAG: ${COMMIT_ID}
           COMMIT_ID: ${COMMIT_ID}
           BRANCH: ${BRANCH}

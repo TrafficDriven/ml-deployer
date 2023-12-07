@@ -170,7 +170,7 @@ jobs:
         fi
 
         cd code-source
-        helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=$TARGET_ENVIRONMENT_HELM --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} > ../destiny-manifest/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml
+        helm template ${{ env.APP_FOLDER_NAME }}${{ inputs.helm_chart_file }} --set app.targetRevision=$TARGET_ENVIRONMENT_HELM --set app.image.pullPolicy=Always --set app.image.tag=${{ github.sha }} --set app.version=${{ github.sha }} > ../destiny-manifest/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml
 
         cd ../destiny-manifest
         source "${{ env.APP_FOLDER_NAME }}build-tags"
@@ -190,7 +190,7 @@ jobs:
         apiVersion: v1
         kind: ConfigMap
         metadata:
-          name: ${APP_NAME}-release-info
+          name: ${{ env.APP_REPO_NAME }}-release-info
           namespace: ${NAMESPACE}
           labels:
             mintctl/release-info: "true"

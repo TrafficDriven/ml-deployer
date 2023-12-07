@@ -79,12 +79,12 @@ jobs:
         fi
 
         cat <<-EOF > "${APP_FOLDER_NAME|build-tags"
-        export APP_NAME="$APP_NAME"
+        export APP_NAME="${APP_REPO_NAME}"
         export NAMESPACE="${NAMESPACE}"
-        export IMAGE_TAG="$COMMIT_ID_ROLLBACK"
+        export IMAGE_TAG="${COMMIT_ID_ROLLBACK}"
         export COMMIT_ID_ROLLBACK=""
-        export COMMIT_ID="$COMMIT_ID_ROLLBACK"
-        export BRANCH="$BRANCH"
+        export COMMIT_ID="${COMMIT_ID_ROLLBACK}"
+        export BRANCH="${BRANCH}"
         export ACTION="rollback"
         EOF
 
@@ -105,7 +105,7 @@ jobs:
         fi
 
         cd code-source
-        helm template ${{ inputs.monorepo_application_folder }}${{ inputs.helm_chart_file }} --set app.targetRevision=$TARGET_ENVIRONMENT_HELM --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_ROLLBACK }} --set app.version=${{ env.COMMIT_ID_ROLLBACK }} > "../destiny-manifest/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
+        helm template ${{ env.APP_FOLDER_NAME }}${{ inputs.helm_chart_file }} --set app.targetRevision=$TARGET_ENVIRONMENT_HELM --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID_ROLLBACK }} --set app.version=${{ env.COMMIT_ID_ROLLBACK }} > "../destiny-manifest/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
 
         cd ../destiny-manifest
         source "${{ env.APP_FOLDER_NAME }}build-tags"
@@ -115,12 +115,12 @@ jobs:
         apiVersion: v1
         kind: ConfigMap
         metadata:
-          name: ${APP_NAME}-release-info
+          name: ${{ env.APP_REPO_NAME }}-release-info
           namespace: ${NAMESPACE}
           labels:
             mintctl/release-info: "true"
         data:
-          APP_NAME: ${APP_NAME}
+          APP_NAME: ${{ env.APP_REPO_NAME }}
           IMAGE_TAG: ${COMMIT_ID_ROLLBACK}
           COMMIT_ID: ${COMMIT_ID_ROLLBACK}
           BRANCH: ${BRANCH}
