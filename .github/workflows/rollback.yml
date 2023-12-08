@@ -62,7 +62,7 @@ jobs:
         echo "APP_REPO_NAME=$(echo ${APP_REPO_NAME})" >> $GITHUB_ENV
         echo "APP_FOLDER_NAME=$(echo ${APP_FOLDER_NAME})" >> $GITHUB_ENV
 
-        DIR="destiny-manifest${APP_FOLDER_NAME}"
+        DIR="destiny-manifest/${APP_FOLDER_NAME}"
 
         if [ ! -d "$DIR" ]; then
           echo "no ${{ inputs.environment }} branch found. Can't rollback"
