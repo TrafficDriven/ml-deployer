@@ -36,7 +36,7 @@ on:
       notification:
         description: 'Send slack notification'
         required: false
-        default: false
+        default: true
         type: boolean
       docker_target:
         description: 'The makefile target for building the application docker image'
