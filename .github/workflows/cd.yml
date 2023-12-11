@@ -215,6 +215,7 @@ jobs:
         git add .
         git commit -m "deploy in ${{ inputs.environment }}" --no-verify
         git push --set-upstream origin ${{ env.ENV }}
+      continue-on-error: true
 
     - name: Post Slack Notification
       if: inputs.notification == true

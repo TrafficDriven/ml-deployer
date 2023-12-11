@@ -128,10 +128,10 @@ jobs:
 
         cd code-source
         helm template ${{ env.APP_FOLDER_NAME }}${{ inputs.helm_chart_file }} --set app.targetRevision=$TARGET_ENVIRONMENT_HELM --set app.image.pullPolicy=Always --set app.image.tag=${{ env.COMMIT_ID }} --set app.version=${{ env.COMMIT_ID }} > "../destiny-manifest-to/${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
-      
+
         cd ../destiny-manifest-to
         source "${{ env.APP_FOLDER_NAME }}build-tags"
-      
+
         cat <<-EOF >> "${{ env.APP_FOLDER_NAME }}manifest/manifest.yaml"
         ---
         apiVersion: v1
@@ -162,6 +162,7 @@ jobs:
         git add .
         git commit -m "releasing to ${{ inputs.environmentTo }}" --no-verify
         git push --set-upstream origin ${{ inputs.environmentTo }}
+      continue-on-error: true
 
     - name: Post Slack Notification
       uses: slackapi/slack-github-action@v1.24.0
