@@ -148,7 +148,7 @@ jobs:
           COMMIT_ID: ${COMMIT_ID}
           BRANCH: ${BRANCH}
           ACTION: release
-          ENVIRONMENT: ${{ inpus.environmentTo }}
+          ENVIRONMENT: ${{ inputs.environmentTo }}
         EOF
 
     - name: Pushing manifest to ${{ inputs.environmentTo }} branch
