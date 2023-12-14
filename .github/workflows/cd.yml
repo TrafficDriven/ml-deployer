@@ -58,6 +58,11 @@ on:
         required: false
         default: ''
         type: string
+      setup:
+        description: 'Run setup makefile'
+        required: false
+        default: false
+        type: boolean
     secrets:
       slack_channel_id:
         description: 'Slack Channel ID.'
@@ -85,6 +90,12 @@ jobs:
       uses: actions/checkout@v4
       with:
         path: code-source
+
+    - name: GHA Environment setup
+      if: inputs.setup == true
+      shell: bash
+      run: |-
+        make setup
 
 
     - name: Setup Go
