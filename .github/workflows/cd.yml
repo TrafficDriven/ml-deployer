@@ -95,7 +95,7 @@ jobs:
       if: inputs.setup == true
       shell: bash
       run: |-
-        make setup
+        cd code-source; make setup
 
 
     - name: Setup Go
