@@ -124,7 +124,7 @@ jobs:
 
         if [ -z "$ENV" ]
         then
-          export ENV="stage"
+          export ENV="production"
         fi
 
         echo "APP_REPO_NAME=$(echo ${APP_REPO_NAME})" >> $GITHUB_ENV
