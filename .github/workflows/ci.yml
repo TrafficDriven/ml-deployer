@@ -60,7 +60,7 @@ jobs:
           version: ${{ inputs.go_lint_version }}
           args: --timeout 3m
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ inputs.node_version }}
       - name: Go Format
